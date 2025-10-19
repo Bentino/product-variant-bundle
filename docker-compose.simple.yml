@@ -1,0 +1,46 @@
+# Simple Docker Compose for Pre-built Image
+# Use this when you have a pre-built Docker image
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: product-variant-bundle-db
+    environment:
+      POSTGRES_DB: ProductVariantBundle
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
+  api:
+    image: product-variant-bundle-api:latest  # Pre-built image
+    container_name: product-variant-bundle-api
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=ProductVariantBundle;Username=postgres;Password=postgres123;Port=5432
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

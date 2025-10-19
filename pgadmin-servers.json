@@ -1,0 +1,15 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "ProductVariantBundle",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "ProductVariantBundle",
+      "Username": "postgres",
+      "Password": "postgres123",
+      "SSLMode": "prefer",
+      "Comment": "Auto-configured PostgreSQL server"
+    }
+  }
+}

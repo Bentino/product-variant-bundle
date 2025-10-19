@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: product-variant-bundle-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app-network
+
+  api:
+    build: 
+      context: .
+      target: development  # Use development stage
+    container_name: product-variant-bundle-api
+    ports:
+      - "${API_PORT}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=${ASPNETCORE_URLS}
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+      - DOTNET_USE_POLLING_FILE_WATCHER=true
+    volumes:
+      # Mount source code for hot reload with dotnet watch
+      - .:/src
+      - /src/bin
+      - /src/obj
+    working_dir: /src/src/ProductVariantBundle.Api
+    command: ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080"]
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Optional: Database management tool
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: product-variant-bundle-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "${PGADMIN_PORT}:80"
+    depends_on:
+      - postgres
+    volumes:
+      - ./pgadmin-servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

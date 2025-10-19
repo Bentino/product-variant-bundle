@@ -1,0 +1,597 @@
+{
+  "info": {
+    "name": "Product Variant Bundle API",
+    "description": "Comprehensive API collection for Product Variant Bundle system demonstration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "variantId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bundleId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sellableItemId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Database Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health/database",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health", "database"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Management",
+      "item": [
+        {
+          "name": "Create Gaming Laptop Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('productId', response.data.id);",
+                  "    console.log('Product ID set to:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TechCorp Gaming Laptop Pro\",\n  \"slug\": \"techcorp-gaming-laptop-pro\",\n  \"description\": \"High-performance gaming laptop with RGB keyboard and advanced cooling system\",\n  \"category\": \"Electronics\",\n  \"attributes\": {\n    \"brand\": \"TechCorp\",\n    \"warranty\": \"3 years\",\n    \"weight\": \"2.8kg\",\n    \"screenSize\": \"15.6 inches\",\n    \"processor\": \"Intel i7-12700H\",\n    \"graphics\": \"NVIDIA RTX 4060\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Gaming Mouse Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TechCorp Gaming Mouse Pro\",\n  \"slug\": \"techcorp-gaming-mouse-pro\",\n  \"description\": \"Wireless gaming mouse with RGB lighting and programmable buttons\",\n  \"category\": \"Accessories\",\n  \"attributes\": {\n    \"brand\": \"TechCorp\",\n    \"warranty\": \"2 years\",\n    \"weight\": \"95g\",\n    \"dpi\": \"16000\",\n    \"connectivity\": \"Wireless 2.4GHz + Bluetooth\",\n    \"batteryLife\": \"70 hours\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products?search=gaming&sortBy=name&sortDirection=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "gaming"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "name"
+                },
+                {
+                  "key": "sortDirection",
+                  "value": "asc"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Products by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products?category=Electronics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Electronics"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Variants",
+      "item": [
+        {
+          "name": "Create Laptop Variant - 16GB+512GB",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('variantId', response.data.id);",
+                  "    pm.collectionVariables.set('sellableItemId', response.data.sellableItem.id);",
+                  "    console.log('Variant ID set to:', response.data.id);",
+                  "    console.log('Sellable Item ID set to:', response.data.sellableItem.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"LAPTOP-PRO-16GB-512GB\",\n  \"price\": 1299.99,\n  \"optionValues\": [\n    {\n      \"optionName\": \"Memory\",\n      \"optionSlug\": \"memory\",\n      \"value\": \"16GB DDR5\"\n    },\n    {\n      \"optionName\": \"Storage\",\n      \"optionSlug\": \"storage\",\n      \"value\": \"512GB NVMe SSD\"\n    }\n  ],\n  \"attributes\": {\n    \"color\": \"Midnight Black\",\n    \"model\": \"Pro-16-512\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/variants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}", "variants"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Laptop Variant - 32GB+1TB",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"LAPTOP-PRO-32GB-1TB\",\n  \"price\": 1699.99,\n  \"optionValues\": [\n    {\n      \"optionName\": \"Memory\",\n      \"optionSlug\": \"memory\",\n      \"value\": \"32GB DDR5\"\n    },\n    {\n      \"optionName\": \"Storage\",\n      \"optionSlug\": \"storage\",\n      \"value\": \"1TB NVMe SSD\"\n    }\n  ],\n  \"attributes\": {\n    \"color\": \"Midnight Black\",\n    \"model\": \"Pro-32-1TB\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/variants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}", "variants"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Variants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/variants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}", "variants"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory Management",
+      "item": [
+        {
+          "name": "Set Initial Stock - Laptop 16GB+512GB",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"onHand\": 25,\n  \"reserved\": 3,\n  \"warehouseCode\": \"MAIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/LAPTOP-PRO-16GB-512GB/stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "LAPTOP-PRO-16GB-512GB", "stock"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Initial Stock - Laptop 32GB+1TB",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"onHand\": 8,\n  \"reserved\": 1,\n  \"warehouseCode\": \"MAIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/LAPTOP-PRO-32GB-1TB/stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "LAPTOP-PRO-32GB-1TB", "stock"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inventory Record",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/LAPTOP-PRO-16GB-512GB",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "LAPTOP-PRO-16GB-512GB"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reserve Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2,\n  \"warehouseCode\": \"MAIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/LAPTOP-PRO-16GB-512GB/reserve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "LAPTOP-PRO-16GB-512GB", "reserve"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Release Reserved Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 1,\n  \"warehouseCode\": \"MAIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/LAPTOP-PRO-16GB-512GB/release",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "LAPTOP-PRO-16GB-512GB", "release"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Available Stock",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/LAPTOP-PRO-16GB-512GB/available",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "inventory", "LAPTOP-PRO-16GB-512GB", "available"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Product Bundles",
+      "item": [
+        {
+          "name": "Create Gaming Setup Bundle",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('bundleId', response.data.id);",
+                  "    console.log('Bundle ID set to:', response.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Complete Gaming Setup Pro\",\n  \"description\": \"Everything you need for professional gaming: laptop and accessories\",\n  \"sku\": \"GAMING-SETUP-COMPLETE\",\n  \"price\": 1399.99,\n  \"items\": [\n    {\n      \"sellableItemId\": \"{{sellableItemId}}\",\n      \"quantity\": 1\n    }\n  ],\n  \"metadata\": {\n    \"promotion\": \"Holiday Special 2024\",\n    \"discount\": \"Save $110\",\n    \"validUntil\": \"2024-12-31\",\n    \"category\": \"Gaming Bundles\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bundles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bundles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Bundles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bundles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bundles"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Bundle by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bundles/{{bundleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bundles", "{{bundleId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Calculate Bundle Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/bundles/{{bundleId}}/availability?warehouseCode=MAIN",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "bundles", "{{bundleId}}", "availability"],
+              "query": [
+                {
+                  "key": "warehouseCode",
+                  "value": "MAIN"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Batch Operations",
+      "item": [
+        {
+          "name": "Batch Create Variants",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"demo-batch-variants-2024-001\",\n  \"onConflict\": \"skip\",\n  \"items\": [\n    {\n      \"productMasterId\": \"{{productId}}\",\n      \"sku\": \"LAPTOP-PRO-8GB-256GB\",\n      \"price\": 999.99,\n      \"optionValues\": [\n        {\n          \"optionName\": \"Memory\",\n          \"optionSlug\": \"memory\",\n          \"value\": \"8GB DDR5\"\n        },\n        {\n          \"optionName\": \"Storage\",\n          \"optionSlug\": \"storage\",\n          \"value\": \"256GB NVMe SSD\"\n        }\n      ],\n      \"attributes\": {\n        \"color\": \"Midnight Black\",\n        \"model\": \"Pro-8-256\"\n      }\n    },\n    {\n      \"productMasterId\": \"{{productId}}\",\n      \"sku\": \"LAPTOP-PRO-16GB-1TB\",\n      \"price\": 1499.99,\n      \"optionValues\": [\n        {\n          \"optionName\": \"Memory\",\n          \"optionSlug\": \"memory\",\n          \"value\": \"16GB DDR5\"\n        },\n        {\n          \"optionName\": \"Storage\",\n          \"optionSlug\": \"storage\",\n          \"value\": \"1TB NVMe SSD\"\n        }\n      ],\n      \"attributes\": {\n        \"color\": \"Midnight Black\",\n        \"model\": \"Pro-16-1TB\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/batch/variants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "batch", "variants"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Scenarios",
+      "item": [
+        {
+          "name": "Create Product with Duplicate Slug",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Another Gaming Laptop\",\n  \"slug\": \"techcorp-gaming-laptop-pro\",\n  \"description\": \"This should fail due to duplicate slug\",\n  \"category\": \"Electronics\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Variant with Duplicate SKU",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"LAPTOP-PRO-16GB-512GB\",\n  \"price\": 1399.99,\n  \"optionValues\": [\n    {\n      \"optionName\": \"Memory\",\n      \"optionSlug\": \"memory\",\n      \"value\": \"8GB DDR5\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{productId}}/variants",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "{{productId}}", "variants"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Non-existent Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products", "00000000-0000-0000-0000-000000000000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Request Body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"slug\": \"\",\n  \"price\": -100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "products"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
