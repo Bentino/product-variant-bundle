@@ -41,7 +41,7 @@ services:
       - /src/bin
       - /src/obj
     working_dir: /src/src/ProductVariantBundle.Api
-    command: ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080"]
+    # command: ["dotnet", "watch", "run", "--urls", "http://0.0.0.0:8080"]
     networks:
       - app-network
     restart: unless-stopped
@@ -61,6 +61,26 @@ services:
       - postgres
     volumes:
       - ./pgadmin-servers.json:/pgadmin4/servers.json:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  # Frontend - Admin UI
+  frontend:
+    build: 
+      context: ./frontend
+      target: development
+    container_name: product-variant-bundle-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8080
+      - VITE_API_URL_INTERNAL=http://api:8080
+    depends_on:
+      - api
     networks:
       - app-network
     restart: unless-stopped

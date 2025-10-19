@@ -2,6 +2,7 @@ namespace ProductVariantBundle.Core.Enums;
 
 public enum EntityStatus
 {
-    Active,
-    Archived
+    Inactive = 0,
+    Active = 1,
+    Archived = 2
 }

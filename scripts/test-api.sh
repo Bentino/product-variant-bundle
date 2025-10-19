@@ -3,7 +3,7 @@
 # Product Variant Bundle API - Comprehensive Manual Testing Script
 # This script tests all major API functionality
 
-BASE_URL="http://localhost:8080"
+BASE_URL="http://localhost:3000"
 TEST_LOG="manual-api-test-results.log"
 
 # Colors for output

@@ -11,6 +11,15 @@ public class InventoryRecordDto : BaseDto
     public int OnHand { get; set; }
     public int Reserved { get; set; }
     public int Available => OnHand - Reserved;
+    public SellableItemDto? SellableItem { get; set; }
+    public DateTime LastUpdated { get; set; }
+}
+
+public class SellableItemDto
+{
+    public Guid Id { get; set; }
+    public string SKU { get; set; } = string.Empty;
+    public int Type { get; set; }
 }
 
 public class UpdateInventoryDto

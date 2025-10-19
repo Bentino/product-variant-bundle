@@ -1,4 +1,5 @@
 using ProductVariantBundle.Core.Entities;
+using ProductVariantBundle.Core.Models;
 
 namespace ProductVariantBundle.Core.Interfaces;
 
@@ -16,4 +17,5 @@ public interface IInventoryRepository
     Task<Warehouse?> GetWarehouseByCodeAsync(string warehouseCode);
     Task<int> GetAvailableStockAsync(Guid sellableItemId, Guid warehouseId);
     Task UpdateStockAsync(Guid sellableItemId, Guid warehouseId, int onHand, int reserved);
+    Task<PagedResult<InventoryRecord>> GetPagedAsync(int page, int pageSize, string? search, string? warehouseCode, string sortBy, string sortDirection);
 }

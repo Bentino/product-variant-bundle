@@ -141,9 +141,6 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline
 
-// Add global exception handling middleware first
-app.UseMiddleware<GlobalExceptionMiddleware>();
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -162,7 +159,10 @@ if (!app.Environment.IsDevelopment())
 
 app.UseCors("ApiCorsPolicy");
 
-// Add response wrapper middleware before authorization
+// Add global exception handling middleware first (to catch exceptions)
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Add response wrapper middleware after exception handling (to wrap responses)
 app.UseMiddleware<ResponseWrapperMiddleware>();
 
 app.UseAuthorization();

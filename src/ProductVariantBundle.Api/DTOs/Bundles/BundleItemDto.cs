@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using ProductVariantBundle.Api.DTOs.Common;
 
 namespace ProductVariantBundle.Api.DTOs.Bundles;
@@ -15,9 +16,11 @@ public class BundleItemDto : BaseDto
 public class CreateBundleItemDto
 {
     [Required(ErrorMessage = "Sellable Item ID is required")]
+    [JsonPropertyName("sellableItemId")]
     public Guid SellableItemId { get; set; }
 
     [Required(ErrorMessage = "Quantity is required")]
     [Range(1, int.MaxValue, ErrorMessage = "Quantity must be greater than 0")]
+    [JsonPropertyName("quantity")]
     public int Quantity { get; set; }
 }

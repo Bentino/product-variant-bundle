@@ -259,63 +259,48 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<ApiResponse<ProductVariantDto>>> CreateProductVariant(
         Guid id, [FromBody] CreateProductVariantDto createDto)
     {
-        try
+        // Check model state first
+        if (!ModelState.IsValid)
         {
-            // Check model state first
-            if (!ModelState.IsValid)
-            {
-                var errors = ModelState
-                    .Where(x => x.Value.Errors.Count > 0)
-                    .ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                    );
-                throw new ValidationException(errors);
-            }
+            var errors = ModelState
+                .Where(x => x.Value.Errors.Count > 0)
+                .ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                );
+            throw new ValidationException(errors);
+        }
 
-            if (createDto.ProductMasterId != id)
-            {
-                throw new ValidationException("ProductMasterId", "Product master ID mismatch");
-            }
+        if (createDto.ProductMasterId != id)
+        {
+            throw new ValidationException("ProductMasterId", "Product master ID mismatch");
+        }
 
-            // Map DTO to entity
-            var variant = _mapper.Map<ProductVariant>(createDto);
-            
-            // Create the variant
-            var createdVariant = await _productService.CreateVariantAsync(variant);
-            
-            // Create associated sellable item with SKU
-            var sellableItem = new SellableItem
-            {
-                SKU = createDto.SKU,
-                Type = SellableItemType.Variant,
-                VariantId = createdVariant.Id,
-                Status = EntityStatus.Active
-            };
-            
-            // Note: SellableItemService.CreateAsync needs to be implemented
-            // For now, we'll return the variant without the sellable item
-            
-            var variantDto = _mapper.Map<ProductVariantDto>(createdVariant);
-            variantDto.SKU = createDto.SKU; // Set SKU manually
+        // Map DTO to entity
+        var variant = _mapper.Map<ProductVariant>(createDto);
+        
+        // Create the variant
+        var createdVariant = await _productService.CreateVariantAsync(variant);
+        
+        // Create associated sellable item with SKU
+        var sellableItem = new SellableItem
+        {
+            SKU = createDto.SKU,
+            Type = SellableItemType.Variant,
+            VariantId = createdVariant.Id,
+            Status = EntityStatus.Active
+        };
+        
+        // Note: SellableItemService.CreateAsync needs to be implemented
+        // For now, we'll return the variant without the sellable item
+        
+        var variantDto = _mapper.Map<ProductVariantDto>(createdVariant);
+        variantDto.SKU = createDto.SKU; // Set SKU manually
 
-            return CreatedAtAction(
-                nameof(GetProductVariant),
-                new { id = id, variantId = createdVariant.Id },
-                variantDto);
-        }
-        catch (ValidationException ex)
-        {
-            return BadRequest(ApiResponse<ProductVariantDto>.Error(ex.Message));
-        }
-        catch (DuplicateEntityException ex)
-        {
-            return Conflict(ApiResponse<ProductVariantDto>.Error(ex.Message));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ApiResponse<ProductVariantDto>.Error($"Internal server error: {ex.Message}"));
-        }
+        return CreatedAtAction(
+            nameof(GetProductVariant),
+            new { id = id, variantId = createdVariant.Id },
+            variantDto);
     }
 
     /// <summary>

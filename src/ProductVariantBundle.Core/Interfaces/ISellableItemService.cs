@@ -7,7 +7,7 @@ public interface ISellableItemService
 {
     Task<bool> ValidateSkuUniquenessAsync(string sku, Guid? excludeId = null);
     Task<SellableItem?> GetBySKUAsync(string sku);
-    Task<SellableItem> CreateSellableItemAsync(SellableItemType type, Guid entityId, string sku);
+    Task<SellableItem> CreateSellableItemAsync(SellableItemType type, Guid entityId, string sku, bool skipValidation = false);
     Task<SellableItem> UpdateSellableItemAsync(SellableItem sellableItem);
     Task DeleteSellableItemAsync(Guid id);
 }

@@ -2,6 +2,7 @@ using ProductVariantBundle.Core.Entities;
 using ProductVariantBundle.Core.Enums;
 using ProductVariantBundle.Core.Exceptions;
 using ProductVariantBundle.Core.Interfaces;
+using ProductVariantBundle.Core.Models;
 using System.Data;
 
 namespace ProductVariantBundle.Core.Services;
@@ -168,5 +169,10 @@ public class InventoryService : IInventoryService
         };
 
         return await _inventoryRepository.AddAsync(inventoryRecord);
+    }
+
+    public async Task<PagedResult<InventoryRecord>> GetInventoryRecordsAsync(int page = 1, int pageSize = 10, string? search = null, string? warehouseCode = null, string sortBy = "SKU", string sortDirection = "asc")
+    {
+        return await _inventoryRepository.GetPagedAsync(page, pageSize, search, warehouseCode, sortBy, sortDirection);
     }
 }

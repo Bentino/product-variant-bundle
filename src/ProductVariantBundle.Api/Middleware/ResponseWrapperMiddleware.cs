@@ -16,6 +16,8 @@ public class ResponseWrapperMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        Console.WriteLine($"=== ResponseWrapperMiddleware: {context.Request.Method} {context.Request.Path} ===");
+        
         // Skip wrapping for certain paths
         if (ShouldSkipWrapping(context.Request.Path))
         {
@@ -43,13 +45,14 @@ public class ResponseWrapperMiddleware
         }
 
         // Only wrap successful responses (2xx status codes)
+        // For error responses, let GlobalExceptionMiddleware handle them completely
         if (context.Response.StatusCode >= 200 && context.Response.StatusCode < 300)
         {
             await WrapSuccessResponse(context, originalBodyStream);
         }
         else
         {
-            // For error responses, just copy the original response
+            // For error responses, just pass through - GlobalExceptionMiddleware already handled them
             context.Response.Body.Seek(0, SeekOrigin.Begin);
             await context.Response.Body.CopyToAsync(originalBodyStream);
         }

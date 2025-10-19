@@ -40,8 +40,16 @@ public static class ServiceCollectionExtensions
         // Add validation filter
         services.AddScoped<ValidationFilter>();
 
-        // Configure controllers - ValidationFilter disabled for debugging
-        services.AddControllers();
+        // Configure controllers with JSON options and validation filter
+        services.AddControllers(options =>
+            {
+                options.Filters.Add<ValidationFilter>();
+            })
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+            });
 
         return services;
     }

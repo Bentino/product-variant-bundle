@@ -10,6 +10,9 @@ public class InventoryMappingProfile : Profile
     {
         CreateMap<InventoryRecord, InventoryRecordDto>()
             .ForMember(dest => dest.WarehouseCode, opt => opt.MapFrom(src => src.Warehouse.Code))
-            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SellableItem.SKU));
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SellableItem.SKU))
+            .ForMember(dest => dest.LastUpdated, opt => opt.MapFrom(src => src.UpdatedAt));
+
+        CreateMap<SellableItem, SellableItemDto>();
     }
 }

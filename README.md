@@ -103,9 +103,10 @@ If you have received a pre-built Docker image:
    ```
 
 #### Access Points
-- **Swagger UI**: http://localhost:8080
+- **Admin UI**: http://localhost:3000 (Product Catalog)
+- **API Documentation**: http://localhost:8080 (Swagger UI)
 - **Health Check**: http://localhost:8080/api/health
-- **API Base URL**: http://localhost:8080/api
+- **Database Admin**: http://localhost:8082 (PgAdmin)
 
 ### Container-Based Development
 

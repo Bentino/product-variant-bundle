@@ -42,10 +42,32 @@ public class BundleValidator
     {
         errors ??= new Dictionary<string, List<string>>();
 
+        // Debug logging
+        Console.WriteLine($"ValidateBundleItemsAsync - Items is null: {items == null}");
+        if (items != null)
+        {
+            var itemsList = items.ToList();
+            Console.WriteLine($"ValidateBundleItemsAsync - Items count: {itemsList.Count}");
+            Console.WriteLine($"ValidateBundleItemsAsync - Items.Any(): {items.Any()}");
+            foreach (var item in itemsList)
+            {
+                Console.WriteLine($"  Item - SellableItemId: {item.SellableItemId}, Quantity: {item.Quantity}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Items is NULL!");
+        }
+
         if (!items.Any())
         {
+            Console.WriteLine("Entering IF block because !items.Any() is TRUE");
             errors.AddError("Items", "Bundle must contain at least one item");
             return;
+        }
+        else
+        {
+            Console.WriteLine("NOT entering IF block because items.Any() is TRUE");
         }
 
         var sellableItemIds = new HashSet<Guid>();

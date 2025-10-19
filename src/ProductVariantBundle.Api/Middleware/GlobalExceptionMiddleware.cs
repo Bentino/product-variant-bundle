@@ -31,55 +31,39 @@ public class GlobalExceptionMiddleware
 
     private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        context.Response.ContentType = "application/problem+json";
+        // Clear any existing response
+        context.Response.Clear();
+        context.Response.ContentType = "application/json";
 
-        var problemDetails = exception switch
+        // Create consistent API response format instead of ProblemDetails
+        var (statusCode, errorMessages) = exception switch
         {
-            ValidationException validationEx => ProblemDetailsResponse.Create(
-                status: (int)HttpStatusCode.BadRequest,
-                title: "Validation Error",
-                detail: "One or more validation errors occurred.",
-                instance: context.Request.Path,
-                errors: validationEx.Errors.ToDictionary(kvp => kvp.Key, kvp => kvp.Value)),
+            ValidationException validationEx => ((int)HttpStatusCode.BadRequest, 
+                validationEx.Errors.SelectMany(kvp => kvp.Value.Select(error => $"{kvp.Key}: {error}")).ToArray()),
 
-            DuplicateEntityException duplicateEx => ProblemDetailsResponse.Create(
-                status: (int)HttpStatusCode.Conflict,
-                title: "Duplicate Entity",
-                detail: duplicateEx.Message,
-                instance: context.Request.Path),
+            DuplicateEntityException duplicateEx => ((int)HttpStatusCode.Conflict, 
+                new[] { duplicateEx.Message }),
 
-            EntityNotFoundException notFoundEx => ProblemDetailsResponse.Create(
-                status: (int)HttpStatusCode.NotFound,
-                title: "Entity Not Found",
-                detail: notFoundEx.Message,
-                instance: context.Request.Path),
+            EntityNotFoundException notFoundEx => ((int)HttpStatusCode.NotFound, 
+                new[] { notFoundEx.Message }),
 
-            BusinessException businessEx => ProblemDetailsResponse.Create(
-                status: (int)HttpStatusCode.BadRequest,
-                title: "Business Rule Violation",
-                detail: businessEx.Message,
-                instance: context.Request.Path),
+            BusinessException businessEx => ((int)HttpStatusCode.BadRequest, 
+                new[] { businessEx.Message }),
 
-            ArgumentException argEx => ProblemDetailsResponse.Create(
-                status: (int)HttpStatusCode.BadRequest,
-                title: "Invalid Argument",
-                detail: argEx.Message,
-                instance: context.Request.Path),
+            ArgumentException argEx => ((int)HttpStatusCode.BadRequest, 
+                new[] { argEx.Message }),
 
-            UnauthorizedAccessException => ProblemDetailsResponse.Create(
-                status: (int)HttpStatusCode.Unauthorized,
-                title: "Unauthorized",
-                detail: "Authentication is required to access this resource.",
-                instance: context.Request.Path),
+            UnauthorizedAccessException => ((int)HttpStatusCode.Unauthorized, 
+                new[] { "Authentication is required to access this resource." }),
 
-            _ => ProblemDetailsResponse.Create(
-                status: (int)HttpStatusCode.InternalServerError,
-                title: "Internal Server Error",
-                detail: "An unexpected error occurred while processing your request.",
-                instance: context.Request.Path)
+            _ => ((int)HttpStatusCode.InternalServerError, 
+                new[] { "An unexpected error occurred while processing your request." })
         };
 
-        context.Response.StatusCode = problemDetails.Status;
+        context.Response.StatusCode = statusCode;
+
+        // Use the same ApiResponse format as successful responses
+        var apiResponse = ApiResponse<object>.Error(errorMessages);
 
         var options = new JsonSerializerOptions
         {
@@ -87,7 +71,9 @@ public class GlobalExceptionMiddleware
             WriteIndented = true
         };
 
-        var json = JsonSerializer.Serialize(problemDetails, options);
+        var json = JsonSerializer.Serialize(apiResponse, options);
+        
+        // Write directly to response without setting ContentLength (use chunked encoding)
         await context.Response.WriteAsync(json);
     }
 }

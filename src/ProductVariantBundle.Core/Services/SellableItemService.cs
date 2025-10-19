@@ -27,11 +27,14 @@ public class SellableItemService : ISellableItemService
         return await _sellableItemRepository.GetBySKUAsync(sku);
     }
 
-    public async Task<SellableItem> CreateSellableItemAsync(SellableItemType type, Guid entityId, string sku)
+    public async Task<SellableItem> CreateSellableItemAsync(SellableItemType type, Guid entityId, string sku, bool skipValidation = false)
     {
         // Normalize and validate SKU
         sku = SkuValidator.NormalizeSku(sku);
-        await _skuValidator.ValidateSkuAsync(sku);
+        if (!skipValidation)
+        {
+            await _skuValidator.ValidateSkuAsync(sku);
+        }
 
         var sellableItem = new SellableItem
         {

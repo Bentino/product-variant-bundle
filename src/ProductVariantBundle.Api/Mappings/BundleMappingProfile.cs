@@ -13,15 +13,22 @@ public class BundleMappingProfile : Profile
     {
         // ProductBundle mappings
         CreateMap<ProductBundle, ProductBundleDto>()
-            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SellableItem != null ? src.SellableItem.SKU : string.Empty));
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => 
+                src.SellableItem != null && !string.IsNullOrEmpty(src.SellableItem.SKU) 
+                    ? src.SellableItem.SKU 
+                    : string.Empty));
 
         CreateMap<CreateProductBundleDto, ProductBundle>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.Ignore())
-            .ForMember(dest => dest.SellableItem, opt => opt.Ignore())
-            .ForMember(dest => dest.Items, opt => opt.Ignore());
+            .ForMember(dest => dest.SellableItem, opt => opt.MapFrom(src => new SellableItem { SKU = src.SKU }))
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items.Select(item => new BundleItem 
+            { 
+                SellableItemId = item.SellableItemId, 
+                Quantity = item.Quantity 
+            })));
 
         CreateMap<UpdateProductBundleDto, ProductBundle>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

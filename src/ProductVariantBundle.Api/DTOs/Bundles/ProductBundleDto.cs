@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using ProductVariantBundle.Api.DTOs.Common;
 
 namespace ProductVariantBundle.Api.DTOs.Bundles;
@@ -29,12 +30,14 @@ public class CreateProductBundleDto
 
     [Required(ErrorMessage = "SKU is required")]
     [StringLength(50, ErrorMessage = "SKU cannot exceed 50 characters")]
+    [JsonPropertyName("sku")]
     public string SKU { get; set; } = string.Empty;
 
     public JsonDocument? Metadata { get; set; }
 
     [Required(ErrorMessage = "At least one bundle item is required")]
     [MinLength(1, ErrorMessage = "At least one bundle item is required")]
+    [JsonPropertyName("items")]
     public ICollection<CreateBundleItemDto> Items { get; set; } = new List<CreateBundleItemDto>();
 }
 

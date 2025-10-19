@@ -39,7 +39,7 @@ public class ProductMappingProfile : Profile
             .ForMember(dest => dest.CombinationKey, opt => opt.Ignore())
             .ForMember(dest => dest.ProductMaster, opt => opt.Ignore())
             .ForMember(dest => dest.SellableItem, opt => opt.Ignore())
-            .ForMember(dest => dest.OptionValues, opt => opt.Ignore());
+            .ForMember(dest => dest.OptionValues, opt => opt.MapFrom(src => src.OptionValues));
 
         CreateMap<UpdateProductVariantDto, ProductVariant>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

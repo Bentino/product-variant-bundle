@@ -40,6 +40,17 @@ public class BundleService : IBundleService
         // Validate using validator
         await _validator.ValidateProductBundleAsync(bundle, false);
 
+        // Pre-validate SKU if provided to fail fast before creating bundle
+        if (bundle.SellableItem != null && !string.IsNullOrEmpty(bundle.SellableItem.SKU))
+        {
+            var normalizedSku = SkuValidator.NormalizeSku(bundle.SellableItem.SKU);
+            var isUnique = await _sellableItemService.ValidateSkuUniquenessAsync(normalizedSku);
+            if (!isUnique)
+            {
+                throw new ValidationException("SKU", $"SKU '{normalizedSku}' already exists");
+            }
+        }
+
         // Set audit fields
         bundle.Id = Guid.NewGuid();
         bundle.CreatedAt = DateTime.UtcNow;
@@ -54,7 +65,8 @@ public class BundleService : IBundleService
             var sellableItem = await _sellableItemService.CreateSellableItemAsync(
                 SellableItemType.Bundle, 
                 createdBundle.Id, 
-                bundle.SellableItem.SKU);
+                bundle.SellableItem.SKU,
+                skipValidation: true);
             
             createdBundle.SellableItem = sellableItem;
         }
@@ -231,4 +243,5 @@ public class BundleService : IBundleService
         await _batchOperationService.SaveOperationResultAsync(request.IdempotencyKey, "CreateBundles", batchResult);
         
         return batchResult;
-    }}
+    }
+}

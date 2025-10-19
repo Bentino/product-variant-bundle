@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductVariantBundle.Core.Entities;
 using ProductVariantBundle.Core.Enums;
 using ProductVariantBundle.Core.Interfaces;
+using ProductVariantBundle.Core.Models;
 using ProductVariantBundle.Infrastructure.Data;
 
 namespace ProductVariantBundle.Infrastructure.Repositories;
@@ -48,11 +49,11 @@ public class InventoryRepository : IInventoryRepository
     {
         return await _context.InventoryRecords
             .FromSqlRaw(@"
-                SELECT ir.* FROM inventory_records ir
-                INNER JOIN sellable_items si ON ir.sellable_item_id = si.id
-                INNER JOIN warehouses w ON ir.warehouse_id = w.id
-                WHERE si.sku = {0} AND w.code = {1} 
-                AND ir.status = 0 AND si.status = 0
+                SELECT ir.* FROM ""InventoryRecords"" ir
+                INNER JOIN ""SellableItems"" si ON ir.""SellableItemId"" = si.""Id""
+                INNER JOIN ""Warehouses"" w ON ir.""WarehouseId"" = w.""Id""
+                WHERE si.""SKU"" = {0} AND w.""Code"" = {1} 
+                AND ir.""Status"" = 1 AND si.""Status"" = 1
                 FOR UPDATE", sku, warehouseCode)
             .Include(ir => ir.SellableItem)
             .Include(ir => ir.Warehouse)
@@ -139,5 +140,69 @@ public class InventoryRepository : IInventoryRepository
     {
         return await _context.Warehouses
             .FirstOrDefaultAsync(w => w.Code == warehouseCode && w.Status == EntityStatus.Active);
+    }
+
+    public async Task<PagedResult<InventoryRecord>> GetPagedAsync(int page, int pageSize, string? search, string? warehouseCode, string sortBy, string sortDirection)
+    {
+        var query = _context.InventoryRecords
+            .Include(ir => ir.SellableItem)
+            .Include(ir => ir.Warehouse)
+            .Where(ir => ir.Status == EntityStatus.Active && ir.SellableItem.Status == EntityStatus.Active);
+
+        // Apply search filter
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(ir => ir.SellableItem.SKU.Contains(search));
+        }
+
+        // Apply warehouse filter
+        if (!string.IsNullOrEmpty(warehouseCode))
+        {
+            query = query.Where(ir => ir.Warehouse.Code == warehouseCode);
+        }
+
+        // Apply sorting
+        var isDescending = sortDirection.ToLower() == "desc";
+        query = sortBy.ToLower() switch
+        {
+            "sku" => isDescending 
+                ? query.OrderByDescending(ir => ir.SellableItem.SKU)
+                : query.OrderBy(ir => ir.SellableItem.SKU),
+            "onhand" => isDescending
+                ? query.OrderByDescending(ir => ir.OnHand)
+                : query.OrderBy(ir => ir.OnHand),
+            "reserved" => isDescending
+                ? query.OrderByDescending(ir => ir.Reserved)
+                : query.OrderBy(ir => ir.Reserved),
+            "warehousecode" => isDescending
+                ? query.OrderByDescending(ir => ir.Warehouse.Code)
+                : query.OrderBy(ir => ir.Warehouse.Code),
+            "lastupdated" => isDescending
+                ? query.OrderByDescending(ir => ir.UpdatedAt)
+                : query.OrderBy(ir => ir.UpdatedAt),
+            _ => query.OrderBy(ir => ir.SellableItem.SKU)
+        };
+
+        var totalItems = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<InventoryRecord>
+        {
+            Data = items,
+            Meta = new PaginationMeta
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = totalItems,
+                TotalPages = totalPages,
+                HasNext = page < totalPages,
+                HasPrevious = page > 1
+            }
+        };
     }
 }
