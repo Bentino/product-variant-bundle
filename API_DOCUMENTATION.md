@@ -14,7 +14,7 @@ The Product Variant Bundle API is a comprehensive RESTful API for managing produ
 
 1. **Clone and start the services:**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:Bentino/product-variant-bundle.git
    cd product-variant-bundle
    docker compose up -d
    ```

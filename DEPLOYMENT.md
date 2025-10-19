@@ -67,7 +67,7 @@ project-folder/
 # Create source distribution
 git archive --format=tar.gz --output=product-variant-bundle-source.tar.gz HEAD
 
-# Or simply share the Git repository URL
+# Or simply share the Git repository URL: git@github.com:Bentino/product-variant-bundle.git
 ```
 
 ### For Testing/Demo

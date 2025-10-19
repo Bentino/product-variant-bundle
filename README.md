@@ -41,8 +41,8 @@ This project follows Clean Architecture principles with the following layers:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/product-variant-bundle-api.git
-   cd product-variant-bundle-api
+   git clone git@github.com:Bentino/product-variant-bundle.git
+   cd product-variant-bundle
    ```
 
 2. **Start the application:**

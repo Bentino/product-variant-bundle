@@ -166,7 +166,7 @@ The API manages product catalogs with variants and bundles, featuring:
 
 ---
 
-**Need the source code?** This distribution contains only the pre-built application. For development access, request the full source code repository.
+**Need the source code?** This distribution contains only the pre-built application. For development access, visit: git@github.com:Bentino/product-variant-bundle.git
 EOF
 
 echo -e "${BLUE}Step 4: Creating distribution archive...${NC}"
