@@ -28,7 +28,7 @@ public class SellableItemConfiguration : BaseEntityConfiguration<SellableItem>
             
         // One-of constraint: either VariantId or BundleId must be set, but not both
         builder.ToTable(t => t.HasCheckConstraint("ck_sellable_item_one_of",
-            "(variant_id IS NOT NULL AND bundle_id IS NULL) OR (variant_id IS NULL AND bundle_id IS NOT NULL)"));
+            "(\"VariantId\" IS NOT NULL AND \"BundleId\" IS NULL) OR (\"VariantId\" IS NULL AND \"BundleId\" IS NOT NULL)"));
             
         // Relationships
         builder.HasOne(e => e.Variant)

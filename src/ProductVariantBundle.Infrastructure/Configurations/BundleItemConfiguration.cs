@@ -21,7 +21,7 @@ public class BundleItemConfiguration : BaseEntityConfiguration<BundleItem>
             .HasDatabaseName("uk_bundle_sellable_item");
             
         // Positive quantity constraint
-        builder.ToTable(t => t.HasCheckConstraint("ck_quantity_positive", "quantity > 0"));
+        builder.ToTable(t => t.HasCheckConstraint("ck_quantity_positive", "\"Quantity\" > 0"));
         
         // Relationships
         builder.HasOne(e => e.Bundle)
