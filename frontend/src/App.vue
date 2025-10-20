@@ -69,9 +69,6 @@
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <!-- API Test Component (Development only) -->
-      <ApiTest v-if="isDev" class="mb-6" />
-      
       <router-view />
     </main>
   </div>
@@ -85,11 +82,9 @@ import {
   CubeIcon,
   RectangleGroupIcon,
   ArchiveBoxIcon,
-  Squares2X2Icon
+  Squares2X2Icon,
+  DocumentTextIcon
 } from '@heroicons/vue/24/outline'
-import ApiTest from '@/components/ApiTest.vue'
-
-const isDev = import.meta.env.DEV
 
 const mobileMenuOpen = ref(false)
 
@@ -98,5 +93,6 @@ const navigation = [
   { name: 'Products', href: '/products', icon: CubeIcon },
   { name: 'Bundles', href: '/bundles', icon: RectangleGroupIcon },
   { name: 'Inventory', href: '/inventory', icon: ArchiveBoxIcon },
+  { name: 'API Reference', href: '/api-reference', icon: DocumentTextIcon },
 ]
 </script>
