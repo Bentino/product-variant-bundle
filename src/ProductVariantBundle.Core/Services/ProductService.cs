@@ -146,6 +146,13 @@ public class ProductService : IProductService
             throw new EntityNotFoundException("ProductVariant", id);
         }
 
+        // Find and delete associated SellableItem first
+        var sellableItem = await _sellableItemService.GetByVariantIdAsync(id);
+        if (sellableItem != null)
+        {
+            await _sellableItemService.DeleteSellableItemAsync(sellableItem.Id);
+        }
+
         // Delete the variant using the correct method
         await _productRepository.DeleteVariantAsync(id);
     }

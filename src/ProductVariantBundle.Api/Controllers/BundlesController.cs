@@ -85,8 +85,14 @@ public class BundlesController : ControllerBase
     {
         try
         {
+            // Validate SKU is provided
+            if (string.IsNullOrEmpty(createDto.SKU))
+            {
+                return BadRequest(ApiResponse<ProductBundleDto>.Error("SKU is required"));
+            }
+            
             var bundle = _mapper.Map<ProductBundle>(createDto);
-            var createdBundle = await _bundleService.CreateBundleAsync(bundle);
+            var createdBundle = await _bundleService.CreateBundleAsync(bundle, createDto.SKU);
             var bundleDto = _mapper.Map<ProductBundleDto>(createdBundle);
 
             return CreatedAtAction(

@@ -25,6 +25,58 @@ public class InventoryController : ControllerBase
     }
 
     /// <summary>
+    /// Create a new inventory record for a SKU
+    /// </summary>
+    [HttpPost]
+    public async Task<ActionResult<ApiResponse<InventoryRecordDto>>> CreateInventoryRecord(
+        [FromBody] CreateInventoryBySKUDto createDto)
+    {
+        try
+        {
+            // Find sellable item by SKU
+            var sellableItem = await _inventoryService.GetSellableItemBySKUAsync(createDto.SKU);
+            if (sellableItem == null)
+            {
+                return NotFound(ApiResponse<InventoryRecordDto>.Error($"SellableItem with SKU '{createDto.SKU}' not found"));
+            }
+
+            // Find warehouse by code
+            var warehouse = await _inventoryService.GetWarehouseByCodeAsync(createDto.WarehouseCode);
+            if (warehouse == null)
+            {
+                return NotFound(ApiResponse<InventoryRecordDto>.Error($"Warehouse with code '{createDto.WarehouseCode}' not found"));
+            }
+
+            var inventoryRecord = await _inventoryService.CreateInventoryRecordAsync(
+                sellableItem.Id, 
+                warehouse.Id, 
+                createDto.OnHand, 
+                createDto.Reserved);
+            
+            var inventoryDto = _mapper.Map<InventoryRecordDto>(inventoryRecord);
+            return CreatedAtAction(nameof(GetInventory), 
+                new { sku = createDto.SKU, warehouseCode = createDto.WarehouseCode }, 
+                ApiResponse<InventoryRecordDto>.Success(inventoryDto));
+        }
+        catch (DuplicateEntityException ex)
+        {
+            return Conflict(ApiResponse<InventoryRecordDto>.Error(ex.Message));
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return NotFound(ApiResponse<InventoryRecordDto>.Error(ex.Message));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ApiResponse<InventoryRecordDto>.Error(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<InventoryRecordDto>.Error($"Internal server error: {ex.Message}"));
+        }
+    }
+
+    /// <summary>
     /// Get paginated inventory records with optional filtering
     /// </summary>
     [HttpGet]

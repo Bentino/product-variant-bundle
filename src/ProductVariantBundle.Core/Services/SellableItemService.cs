@@ -27,6 +27,16 @@ public class SellableItemService : ISellableItemService
         return await _sellableItemRepository.GetBySKUAsync(sku);
     }
 
+    public async Task<SellableItem?> GetByVariantIdAsync(Guid variantId)
+    {
+        return await _sellableItemRepository.GetByVariantIdAsync(variantId);
+    }
+
+    public async Task<SellableItem?> GetByBundleIdAsync(Guid bundleId)
+    {
+        return await _sellableItemRepository.GetByBundleIdAsync(bundleId);
+    }
+
     public async Task<SellableItem> CreateSellableItemAsync(SellableItemType type, Guid entityId, string sku)
     {
         // Normalize and validate SKU

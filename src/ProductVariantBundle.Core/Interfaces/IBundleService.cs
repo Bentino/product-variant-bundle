@@ -5,7 +5,7 @@ namespace ProductVariantBundle.Core.Interfaces;
 
 public interface IBundleService
 {
-    Task<ProductBundle> CreateBundleAsync(ProductBundle bundle);
+    Task<ProductBundle> CreateBundleAsync(ProductBundle bundle, string? sku = null);
     Task<ProductBundle?> GetBundleAsync(Guid id);
     Task<ProductBundle?> GetBundleWithItemsAsync(Guid id);
     Task<IEnumerable<ProductBundle>> GetBundlesAsync();

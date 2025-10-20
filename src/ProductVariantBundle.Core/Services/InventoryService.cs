@@ -11,11 +11,13 @@ public class InventoryService : IInventoryService
 {
     private readonly IInventoryRepository _inventoryRepository;
     private readonly ISellableItemRepository _sellableItemRepository;
+    private readonly IWarehouseRepository _warehouseRepository;
 
-    public InventoryService(IInventoryRepository inventoryRepository, ISellableItemRepository sellableItemRepository)
+    public InventoryService(IInventoryRepository inventoryRepository, ISellableItemRepository sellableItemRepository, IWarehouseRepository warehouseRepository)
     {
         _inventoryRepository = inventoryRepository;
         _sellableItemRepository = sellableItemRepository;
+        _warehouseRepository = warehouseRepository;
     }
 
     public async Task<int> GetAvailableStockAsync(string sku, string warehouseCode = "MAIN")
@@ -169,6 +171,16 @@ public class InventoryService : IInventoryService
         };
 
         return await _inventoryRepository.AddAsync(inventoryRecord);
+    }
+
+    public async Task<SellableItem?> GetSellableItemBySKUAsync(string sku)
+    {
+        return await _sellableItemRepository.GetBySKUAsync(sku);
+    }
+
+    public async Task<Warehouse?> GetWarehouseByCodeAsync(string warehouseCode)
+    {
+        return await _warehouseRepository.GetByCodeAsync(warehouseCode);
     }
 
     public Task<PagedResult<InventoryRecord>> GetInventoryRecordsAsync(int page = 1, int pageSize = 10, string? search = null, string? warehouseCode = null, string sortBy = "SKU", string sortDirection = "asc")

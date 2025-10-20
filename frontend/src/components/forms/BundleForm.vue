@@ -133,10 +133,11 @@
               >
                 <div class="flex-1">
                   <div class="text-sm font-medium text-gray-900">
-                    {{ item.sellableItem?.sku || 'Unknown Item' }}
+                    {{ item.sku || item.sellableItem?.sku || 'Unknown Item' }}
                   </div>
                   <div class="text-xs text-gray-500">
                     {{ item.sellableItem?.type === 0 ? 'Variant' : 'Bundle' }}
+                    <span v-if="item.itemName" class="ml-2">• {{ item.itemName }}</span>
                   </div>
                 </div>
                 <div class="flex items-center space-x-2">
@@ -226,7 +227,7 @@
       <button
         @click="handleSubmit"
         class="btn btn-primary"
-        :disabled="loading || !isFormValid || !bundleItems.length"
+        :disabled="loading || !isFormValid || (!isEditing && !bundleItems.length)"
       >
         <div v-if="loading" class="flex items-center">
           <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -278,13 +279,13 @@ const isEditing = computed(() => !!props.bundle)
 
 // Form initial data
 const initialData = {
-  name: props.bundle?.name || '',
-  description: props.bundle?.description || '',
-  sku: props.bundle?.sku || '',
-  price: props.bundle?.price || 0,
-  status: props.bundle?.status ?? 1,
-  items: props.bundle?.items || [],
-  metadata: props.bundle?.metadata || {}
+  name: '',
+  description: '',
+  sku: '',
+  price: 0,
+  status: 1,
+  items: [],
+  metadata: {}
 }
 
 // Validation rules
@@ -318,9 +319,12 @@ const validationRules: Record<string, ValidationRule> = {
     }
   },
   items: {
-    required: true,
+    required: false, // Allow empty items for editing existing bundles
     custom: (value: any[]) => {
-      if (!value || value.length === 0) return 'At least one item is required'
+      // Only require items for new bundles
+      if (!isEditing.value && (!value || value.length === 0)) {
+        return 'At least one item is required'
+      }
       return null
     }
   }
@@ -346,6 +350,7 @@ const addItem = (selectedItems: any[]) => {
   const itemsToAdd = Array.isArray(selectedItems) ? selectedItems : [selectedItems]
   
   itemsToAdd.forEach(selectedItem => {
+    // selectedItem.id is now the sellableItemId from inventory
     const sellableItemId = selectedItem.id
     const existingIndex = bundleItems.value.findIndex(
       item => item.sellableItemId === sellableItemId
@@ -405,13 +410,14 @@ const getMetadataObject = () => {
 // Auto-generate SKU from name
 watch(() => formData.name.value, (newName) => {
   if (!isEditing.value && newName) {
+    const timestamp = Date.now().toString().slice(-6) // Last 6 digits of timestamp
     const sku = newName
       .toUpperCase()
       .replace(/[^A-Z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim()
-    formData.sku.value = `${sku}-BUNDLE`
+    formData.sku.value = `${sku}-BUNDLE-${timestamp}`
   }
 })
 
@@ -492,11 +498,26 @@ const handleSubmit = async () => {
 // Initialize data from existing bundle
 onMounted(() => {
   if (props.bundle) {
+    // Populate form data
+    formData.name.value = props.bundle.name || ''
+    formData.description.value = props.bundle.description || ''
+    formData.sku.value = props.bundle.sku || ''
+    formData.price.value = props.bundle.price || 0
+    formData.status.value = props.bundle.status ?? 1
+    
+    // Populate bundle items
     bundleItems.value = props.bundle.items?.map(item => ({
       ...item,
       sellableItem: item.sellableItem
     })) || []
+    
+    // Update form items
+    formData.items.value = bundleItems.value.map(item => ({
+      sellableItemId: item.sellableItemId,
+      quantity: item.quantity
+    }))
 
+    // Populate metadata
     if (props.bundle.metadata) {
       metadata.value = Object.entries(props.bundle.metadata).map(([key, value]) => ({
         key,

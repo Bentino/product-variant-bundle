@@ -44,3 +44,19 @@ public class StockInquiryDto
     public int Available { get; set; }
     public DateTime LastUpdated { get; set; }
 }
+
+public class CreateInventoryRecordDto
+{
+    public Guid SellableItemId { get; set; }
+    public Guid WarehouseId { get; set; }
+    public int OnHand { get; set; } = 0;
+    public int Reserved { get; set; } = 0;
+}
+
+public class CreateInventoryBySKUDto
+{
+    public string SKU { get; set; } = string.Empty;
+    public string WarehouseCode { get; set; } = "MAIN";
+    public int OnHand { get; set; } = 0;
+    public int Reserved { get; set; } = 0;
+}

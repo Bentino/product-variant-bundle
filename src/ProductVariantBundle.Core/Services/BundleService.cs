@@ -35,7 +35,7 @@ public class BundleService : IBundleService
         _batchOperationService = batchOperationService;
     }
 
-    public async Task<ProductBundle> CreateBundleAsync(ProductBundle bundle)
+    public async Task<ProductBundle> CreateBundleAsync(ProductBundle bundle, string? sku = null)
     {
         // Validate using validator
         await _validator.ValidateProductBundleAsync(bundle, false);
@@ -49,14 +49,26 @@ public class BundleService : IBundleService
         var createdBundle = await _bundleRepository.AddAsync(bundle);
 
         // Create sellable item if SKU is provided
-        if (bundle.SellableItem != null && !string.IsNullOrEmpty(bundle.SellableItem.SKU))
+        if (!string.IsNullOrEmpty(sku))
         {
-            var sellableItem = await _sellableItemService.CreateSellableItemAsync(
-                SellableItemType.Bundle, 
-                createdBundle.Id, 
-                bundle.SellableItem.SKU);
-            
-            createdBundle.SellableItem = sellableItem;
+            try
+            {
+                var sellableItem = await _sellableItemService.CreateSellableItemAsync(
+                    SellableItemType.Bundle, 
+                    createdBundle.Id, 
+                    sku);
+                
+                createdBundle.SellableItem = sellableItem;
+                
+                // Update the bundle in repository to save the SellableItem reference
+                await _bundleRepository.UpdateAsync(createdBundle);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception but don't fail the bundle creation
+                // In production, use proper logging
+                throw new Exception($"Failed to create SellableItem for Bundle {createdBundle.Id} with SKU {sku}: {ex.Message}", ex);
+            }
         }
 
         return createdBundle;
@@ -106,6 +118,13 @@ public class BundleService : IBundleService
         if (existing == null)
         {
             throw new EntityNotFoundException("ProductBundle", id);
+        }
+
+        // Find and delete associated SellableItem first
+        var sellableItem = await _sellableItemService.GetByBundleIdAsync(id);
+        if (sellableItem != null)
+        {
+            await _sellableItemService.DeleteSellableItemAsync(sellableItem.Id);
         }
 
         await _bundleRepository.DeleteAsync(id);
@@ -197,7 +216,6 @@ public class BundleService : IBundleService
                         Name = item.Name,
                         Description = item.Description,
                         Price = item.Price,
-                        SellableItem = new SellableItem { SKU = item.SKU },
                         Items = item.Items.Select(bi => new BundleItem
                         {
                             SellableItemId = bi.SellableItemId,
@@ -205,7 +223,7 @@ public class BundleService : IBundleService
                         }).ToList()
                     };
 
-                    var createdBundle = await CreateBundleAsync(bundle);
+                    var createdBundle = await CreateBundleAsync(bundle, item.SKU);
                     itemResult.Success = true;
                     itemResult.Data = createdBundle;
                 }

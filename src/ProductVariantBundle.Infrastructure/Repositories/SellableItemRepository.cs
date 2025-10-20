@@ -37,6 +37,18 @@ public class SellableItemRepository : ISellableItemRepository
             .FirstOrDefaultAsync(si => si.SKU == sku && si.Status == EntityStatus.Active);
     }
 
+    public async Task<SellableItem?> GetByVariantIdAsync(Guid variantId)
+    {
+        return await _context.SellableItems
+            .FirstOrDefaultAsync(si => si.VariantId == variantId && si.Status == EntityStatus.Active);
+    }
+
+    public async Task<SellableItem?> GetByBundleIdAsync(Guid bundleId)
+    {
+        return await _context.SellableItems
+            .FirstOrDefaultAsync(si => si.BundleId == bundleId && si.Status == EntityStatus.Active);
+    }
+
     public async Task<IEnumerable<SellableItem>> GetAllAsync()
     {
         return await _context.SellableItems

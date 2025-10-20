@@ -38,6 +38,9 @@ public class BundleRepository : IBundleRepository
     {
         return await _context.ProductBundles
             .Include(b => b.SellableItem)
+            .Include(b => b.Items)
+                .ThenInclude(i => i.SellableItem)
+            .AsSplitQuery()
             .Where(b => b.Status == EntityStatus.Active)
             .ToListAsync();
     }
@@ -48,6 +51,9 @@ public class BundleRepository : IBundleRepository
 
         var query = _context.ProductBundles
             .Include(b => b.SellableItem)
+            .Include(b => b.Items)
+                .ThenInclude(i => i.SellableItem)
+            .AsSplitQuery()
             .AsQueryable();
 
         // Apply filters

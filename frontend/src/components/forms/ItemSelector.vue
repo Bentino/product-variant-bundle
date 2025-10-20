@@ -12,30 +12,15 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Search products and variants..."
+          placeholder="Search items by SKU or name..."
           class="input pl-10 w-full"
         />
       </div>
 
-      <!-- Type Filter and Selection Controls -->
+      <!-- Info and Selection Controls -->
       <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <label class="flex items-center">
-            <input
-              v-model="showVariants"
-              type="checkbox"
-              class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-            <span class="ml-2 text-sm text-gray-700">Show Product Variants</span>
-          </label>
-          <label class="flex items-center">
-            <input
-              v-model="showBundles"
-              type="checkbox"
-              class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-            <span class="ml-2 text-sm text-gray-700">Show Bundles</span>
-          </label>
+        <div class="text-sm text-gray-500">
+          Showing all available product variants and bundles
         </div>
         
         <div class="flex items-center space-x-2">
@@ -103,9 +88,15 @@
               <label :for="`item-${item.id}`" class="flex-1 cursor-pointer">
                 <div class="text-sm font-medium text-gray-900">
                   {{ item.sku }}
+                  <span v-if="item.price" class="ml-2 text-primary-600 font-semibold">
+                    ${{ item.price.toFixed(2) }}
+                  </span>
                 </div>
                 <div class="text-xs text-gray-500">
                   {{ item.type === 1 ? 'Bundle' : 'Product Variant' }}
+                  <span v-if="item.productName || item.bundleName" class="ml-2">
+                    • {{ item.productName || item.bundleName }}
+                  </span>
                   <span v-if="item.available !== undefined" class="ml-2">
                     • {{ item.available }} available
                   </span>
@@ -153,7 +144,7 @@ import {
   RectangleGroupIcon
 } from '@heroicons/vue/24/outline'
 import Modal from '@/components/Modal.vue'
-import { inventoryApi } from '@/services/api'
+import { inventoryApi, productApi, bundleApi } from '@/services/api'
 import type { SellableItem } from '@/types/api'
 
 interface Emits {
@@ -164,35 +155,104 @@ interface Emits {
 const emit = defineEmits<Emits>()
 
 const searchQuery = ref('')
-const showVariants = ref(true)
-const showBundles = ref(true)
 const selectedItems = ref<Set<string>>(new Set())
 
-// Fetch sellable items from inventory (has sellable items data)
-const { data: inventoryData, isLoading } = useQuery({
-  queryKey: ['inventory-for-bundle'],
-  queryFn: () => inventoryApi.getInventoryRecords({ pageSize: 1000 })
+// Fetch products and their variants
+const { data: productsData, isLoading: isLoadingProducts } = useQuery({
+  queryKey: ['products-for-bundle'],
+  queryFn: () => productApi.getProducts({ pageSize: 1000 })
 })
 
-// Convert inventory records to sellable items
+// Fetch bundles
+const { data: bundlesData, isLoading: isLoadingBundles } = useQuery({
+  queryKey: ['bundles-for-bundle'],
+  queryFn: () => bundleApi.getBundles({ pageSize: 1000 })
+})
+
+// Fetch inventory data for availability info
+const { data: inventoryData } = useQuery({
+  queryKey: ['inventory-for-bundle'],
+  queryFn: () => inventoryApi.getInventoryRecords({ pageSize: 1000 }),
+  retry: false // Don't retry if inventory API fails
+})
+
+const isLoading = computed(() => isLoadingProducts.value || isLoadingBundles.value)
+
+// Convert products and bundles to sellable items
 const allSellableItems = computed(() => {
   const items: any[] = []
+  const addedSkus = new Set<string>()
   
-  // Add sellable items from inventory
-  if (inventoryData.value?.data) {
-    inventoryData.value.data.forEach(record => {
-      if (record.sellableItem) {
-        items.push({
-          id: record.sellableItem.id,
-          sku: record.sellableItem.sku,
-          type: record.sellableItem.type,
-          available: record.available,
-          onHand: record.onHand,
-          reserved: record.reserved
+  // Add product variants
+  if (productsData.value?.data) {
+    productsData.value.data.forEach(product => {
+      if (product.variants && product.variants.length > 0) {
+        product.variants.forEach(variant => {
+          if (variant.sku && !addedSkus.has(variant.sku)) {
+            // Find inventory info for this variant
+            const inventoryRecord = inventoryData.value?.data?.find(
+              record => record.sku === variant.sku
+            )
+            
+            items.push({
+              id: variant.id,
+              sku: variant.sku,
+              type: 0, // Variant type
+              available: inventoryRecord?.available || 0,
+              onHand: inventoryRecord?.onHand || 0,
+              reserved: inventoryRecord?.reserved || 0,
+              productName: product.name,
+              price: variant.price
+            })
+            addedSkus.add(variant.sku)
+          }
         })
       }
     })
   }
+  
+  // Add bundles
+  if (bundlesData.value?.data) {
+    bundlesData.value.data.forEach(bundle => {
+      if (bundle.sku && !addedSkus.has(bundle.sku)) {
+        // Find inventory info for this bundle
+        const inventoryRecord = inventoryData.value?.data?.find(
+          record => record.sku === bundle.sku
+        )
+        
+        items.push({
+          id: bundle.id,
+          sku: bundle.sku,
+          type: 1, // Bundle type
+          available: inventoryRecord?.available || 0,
+          onHand: inventoryRecord?.onHand || 0,
+          reserved: inventoryRecord?.reserved || 0,
+          bundleName: bundle.name,
+          price: bundle.price
+        })
+        addedSkus.add(bundle.sku)
+      }
+    })
+  }
+  
+  // Add remaining inventory items that don't match products/bundles
+  if (inventoryData.value?.data) {
+    inventoryData.value.data.forEach(record => {
+      if (record.sku && !addedSkus.has(record.sku)) {
+        items.push({
+          id: record.sellableItemId,
+          sku: record.sku,
+          type: 0, // Default to variant type for unknown items
+          available: record.available,
+          onHand: record.onHand,
+          reserved: record.reserved,
+          productName: 'Unknown Item',
+          price: 0
+        })
+        addedSkus.add(record.sku)
+      }
+    }
+  )}
   
   return items
 })
@@ -201,18 +261,13 @@ const allSellableItems = computed(() => {
 const filteredItems = computed(() => {
   let items = allSellableItems.value
 
-  // Filter by type
-  items = items.filter(item => {
-    if (item.type === 0 && !showVariants.value) return false // Variant
-    if (item.type === 1 && !showBundles.value) return false // Bundle
-    return true
-  })
-
-  // Filter by search
+  // Filter by search only
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     items = items.filter(item =>
-      item.sku.toLowerCase().includes(query)
+      item.sku.toLowerCase().includes(query) ||
+      (item.productName && item.productName.toLowerCase().includes(query)) ||
+      (item.bundleName && item.bundleName.toLowerCase().includes(query))
     )
   }
 

@@ -16,11 +16,13 @@ namespace ProductVariantBundle.Api.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
+    private readonly ISellableItemService _sellableItemService;
     private readonly IMapper _mapper;
 
-    public ProductsController(IProductService productService, IMapper mapper)
+    public ProductsController(IProductService productService, ISellableItemService sellableItemService, IMapper mapper)
     {
         _productService = productService;
+        _sellableItemService = sellableItemService;
         _mapper = mapper;
     }
 
@@ -342,16 +344,11 @@ public class ProductsController : ControllerBase
             var createdVariant = await _productService.CreateVariantAsync(variant);
             
             // Create associated sellable item with SKU
-            var sellableItem = new SellableItem
-            {
-                SKU = createDto.SKU,
-                Type = SellableItemType.Variant,
-                VariantId = createdVariant.Id,
-                Status = EntityStatus.Active
-            };
-            
-            // Note: SellableItemService.CreateAsync needs to be implemented
-            // For now, we'll return the variant without the sellable item
+            await _sellableItemService.CreateSellableItemAsync(
+                SellableItemType.Variant, 
+                createdVariant.Id, 
+                createDto.SKU
+            );
             
             var variantDto = _mapper.Map<ProductVariantDto>(createdVariant);
             variantDto.SKU = createDto.SKU; // Set SKU manually

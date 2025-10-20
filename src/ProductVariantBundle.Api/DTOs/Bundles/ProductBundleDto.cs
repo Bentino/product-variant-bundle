@@ -29,7 +29,7 @@ public class CreateProductBundleDto
 
     [Required(ErrorMessage = "SKU is required")]
     [StringLength(50, ErrorMessage = "SKU cannot exceed 50 characters")]
-    public string SKU { get; set; } = string.Empty;
+    public string SKU { get; set; } = null!;
 
     public JsonDocument? Metadata { get; set; }
 

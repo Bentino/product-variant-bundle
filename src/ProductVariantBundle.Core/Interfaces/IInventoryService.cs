@@ -13,6 +13,8 @@ public interface IInventoryService
     Task<InventoryRecord?> GetInventoryRecordWithLockAsync(string sku, string warehouseCode = "MAIN");
     Task<IEnumerable<InventoryRecord>> GetWarehouseInventoryAsync(string warehouseCode);
     Task<InventoryRecord> CreateInventoryRecordAsync(Guid sellableItemId, Guid warehouseId, int onHand = 0, int reserved = 0);
+    Task<SellableItem?> GetSellableItemBySKUAsync(string sku);
+    Task<Warehouse?> GetWarehouseByCodeAsync(string warehouseCode);
     Task<PagedResult<InventoryRecord>> GetInventoryRecordsAsync(int page = 1, int pageSize = 10, string? search = null, string? warehouseCode = null, string sortBy = "SKU", string sortDirection = "asc");
     Task<InventoryStats> GetInventoryStatsAsync(string warehouseCode = "MAIN", int lowStockThreshold = 10);
 }
