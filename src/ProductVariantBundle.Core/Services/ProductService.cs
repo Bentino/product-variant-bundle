@@ -53,7 +53,14 @@ public class ProductService : IProductService
         variant.Status = EntityStatus.Active;
 
         // Generate combination key
-        variant.CombinationKey = GenerateCombinationKey(variant.OptionValues);
+        if (variant.OptionValues != null && variant.OptionValues.Any())
+        {
+            variant.CombinationKey = await GenerateVariantCombinationKeyAsync(variant.OptionValues);
+        }
+        else
+        {
+            variant.CombinationKey = string.Empty;
+        }
 
         var createdVariant = await _productRepository.AddVariantAsync(variant);
         return createdVariant;
@@ -147,10 +154,7 @@ public class ProductService : IProductService
         return !await _productRepository.SlugExistsAsync(normalizedSlug, excludeId);
     }
 
-    public Task<string> GenerateVariantCombinationKeyAsync(IEnumerable<VariantOptionValue> optionValues)
-    {
-        return Task.FromResult(ProductValidator.GenerateVariantCombinationKey(optionValues));
-    }
+
 
     public async Task<BatchOperationResult<ProductVariant>> CreateVariantsBatchAsync(BatchCreateVariantRequest request)
     {
@@ -364,7 +368,7 @@ public class ProductService : IProductService
         await _productRepository.DeleteVariantOptionAsync(id);
     }
 
-    private string GenerateCombinationKey(ICollection<VariantOptionValue> optionValues)
+    public async Task<string> GenerateVariantCombinationKeyAsync(IEnumerable<VariantOptionValue> optionValues)
     {
         if (optionValues == null || !optionValues.Any())
         {
@@ -373,8 +377,8 @@ public class ProductService : IProductService
 
         // Sort by option name to ensure consistent key generation
         var sortedValues = optionValues
-            .OrderBy(ov => ov.VariantOption?.Name ?? string.Empty)
-            .Select(ov => $"{ov.VariantOption?.Name}:{ov.Value}")
+            .OrderBy(ov => ov.VariantOptionId)
+            .Select(ov => $"{ov.VariantOptionId}:{ov.Value}")
             .ToList();
 
         return string.Join("|", sortedValues);

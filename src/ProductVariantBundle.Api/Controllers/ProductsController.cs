@@ -281,6 +281,17 @@ public class ProductsController : ControllerBase
             // Map DTO to entity
             var variant = _mapper.Map<ProductVariant>(createDto);
             
+            // Manually map OptionValues since AutoMapper ignores them
+            variant.OptionValues = createDto.OptionValues.Select(ov => new VariantOptionValue
+            {
+                Id = Guid.NewGuid(),
+                VariantOptionId = ov.VariantOptionId,
+                Value = ov.Value,
+                Status = EntityStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            }).ToList();
+            
             // Create the variant
             var createdVariant = await _productService.CreateVariantAsync(variant);
             
@@ -302,7 +313,7 @@ public class ProductsController : ControllerBase
             return CreatedAtAction(
                 nameof(GetProductVariant),
                 new { id = id, variantId = createdVariant.Id },
-                variantDto);
+                ApiResponse<ProductVariantDto>.Success(variantDto));
         }
         catch (ValidationException ex)
         {

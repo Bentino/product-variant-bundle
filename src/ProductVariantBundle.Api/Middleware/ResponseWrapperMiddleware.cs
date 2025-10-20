@@ -45,7 +45,7 @@ public class ResponseWrapperMiddleware
         // Only wrap successful responses (2xx status codes)
         if (context.Response.StatusCode >= 200 && context.Response.StatusCode < 300)
         {
-            await WrapSuccessResponse(context, originalBodyStream);
+            await WrapResponse(context, originalBodyStream);
         }
         else
         {
@@ -72,7 +72,7 @@ public class ResponseWrapperMiddleware
                pathValue.Contains(".html");
     }
 
-    private static async Task WrapSuccessResponse(HttpContext context, Stream originalBodyStream)
+    private static async Task WrapResponse(HttpContext context, Stream originalBodyStream)
     {
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         var responseText = await new StreamReader(context.Response.Body).ReadToEndAsync();

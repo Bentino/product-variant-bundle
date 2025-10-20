@@ -5,6 +5,7 @@ using ProductVariantBundle.Api.DTOs.Bundles;
 using ProductVariantBundle.Core.Entities;
 using ProductVariantBundle.Core.Interfaces;
 using ProductVariantBundle.Core.Exceptions;
+using ProductVariantBundle.Core.Enums;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ProductVariantBundle.Api.Controllers;

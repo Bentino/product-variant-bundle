@@ -21,7 +21,7 @@ public class BundleMappingProfile : Profile
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.Ignore())
             .ForMember(dest => dest.SellableItem, opt => opt.Ignore())
-            .ForMember(dest => dest.Items, opt => opt.Ignore());
+            .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items));
 
         CreateMap<UpdateProductBundleDto, ProductBundle>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

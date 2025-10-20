@@ -3,6 +3,7 @@ using ProductVariantBundle.Api.DTOs.Common;
 using ProductVariantBundle.Api.DTOs.Products;
 using ProductVariantBundle.Core.Entities;
 using ProductVariantBundle.Core.Models;
+using System.Text.Json;
 
 namespace ProductVariantBundle.Api.Mappings;
 
@@ -39,6 +40,7 @@ public class ProductMappingProfile : Profile
             .ForMember(dest => dest.CombinationKey, opt => opt.Ignore())
             .ForMember(dest => dest.ProductMaster, opt => opt.Ignore())
             .ForMember(dest => dest.SellableItem, opt => opt.Ignore())
+            .ForMember(dest => dest.Attributes, opt => opt.Ignore())
             .ForMember(dest => dest.OptionValues, opt => opt.Ignore());
 
         CreateMap<UpdateProductVariantDto, ProductVariant>()
