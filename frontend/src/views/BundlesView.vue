@@ -8,7 +8,10 @@
           Manage your product bundles and packages
         </p>
       </div>
-      <button class="btn btn-primary">
+      <button 
+        @click="showBundleForm = true"
+        class="btn btn-primary"
+      >
         <PlusIcon class="w-4 h-4 mr-2" />
         Create Bundle
       </button>
@@ -83,28 +86,51 @@
 
       <template #cell-actions="{ item }">
         <div class="flex items-center space-x-2">
-          <button class="text-primary-600 hover:text-primary-900 text-sm font-medium">
+          <button 
+            @click="editBundle(item)"
+            class="text-primary-600 hover:text-primary-900 text-sm font-medium"
+          >
             Edit
           </button>
           <button class="text-gray-600 hover:text-gray-900 text-sm font-medium">
             Availability
           </button>
-          <button class="text-red-600 hover:text-red-900 text-sm font-medium">
+          <button 
+            @click="deleteBundle(item)"
+            class="text-red-600 hover:text-red-900 text-sm font-medium"
+          >
             Delete
           </button>
         </div>
       </template>
     </DataTable>
+
+
+
+    <!-- Bundle Form Modal -->
+    <BundleForm
+      v-if="showBundleForm"
+      :bundle="editingBundle"
+      @close="onBundleFormClose"
+      @saved="onBundleSaved"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query'
 import { PlusIcon, RectangleGroupIcon } from '@heroicons/vue/24/outline'
 import DataTable from '@/components/DataTable.vue'
+import BundleForm from '@/components/forms/BundleForm.vue'
 import { bundleApi } from '@/services/api'
 import type { ProductBundle, BundleFilter, BundleItem } from '@/types/api'
+
+const queryClient = useQueryClient()
+const showBundleForm = ref(false)
+const editingBundle = ref<ProductBundle | null>(null)
+
+
 
 const filter = reactive<BundleFilter>({
   page: 1,
@@ -166,5 +192,34 @@ const onSort = (column: string, direction: 'asc' | 'desc') => {
 
 const onPageChange = (page: number) => {
   filter.page = page
+}
+
+// Bundle form management
+const editBundle = (bundle: ProductBundle) => {
+  editingBundle.value = bundle
+  showBundleForm.value = true
+}
+
+const deleteBundle = async (bundle: ProductBundle) => {
+  if (!confirm(`Are you sure you want to delete "${bundle.name}"?`)) return
+  
+  try {
+    await bundleApi.deleteBundle(bundle.id)
+    queryClient.invalidateQueries({ queryKey: ['bundles'] })
+  } catch (error) {
+    console.error('Delete bundle error:', error)
+    alert('Failed to delete bundle. Please try again.')
+  }
+}
+
+const onBundleFormClose = () => {
+  showBundleForm.value = false
+  editingBundle.value = null
+}
+
+const onBundleSaved = (bundle: ProductBundle) => {
+  showBundleForm.value = false
+  editingBundle.value = null
+  // Data will be refreshed automatically by React Query
 }
 </script>

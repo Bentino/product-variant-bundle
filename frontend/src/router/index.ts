@@ -25,6 +25,12 @@ const routes: RouteRecordRaw[] = [
     name: 'Inventory',
     component: () => import('@/views/InventoryView.vue'),
     meta: { title: 'Inventory' }
+  },
+  {
+    path: '/api-reference',
+    name: 'ApiReference',
+    component: () => import('@/views/ApiReferenceView.vue'),
+    meta: { title: 'API Reference' }
   }
 ]
 
