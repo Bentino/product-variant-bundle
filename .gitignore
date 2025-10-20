@@ -73,11 +73,6 @@ TestResults/
 test-results.xml
 manual-api-test-results.log
 
-# Core dump files
-core.*
-*.core
-*.dump
-
 # JetBrains Rider
 .idea/
 
