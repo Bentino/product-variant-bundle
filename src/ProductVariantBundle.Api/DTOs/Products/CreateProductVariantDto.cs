@@ -3,6 +3,27 @@ using System.ComponentModel.DataAnnotations;
 namespace ProductVariantBundle.Api.DTOs.Products;
 
 /// <summary>
+/// Custom validation attribute for CreateVariantOptionValueDto
+/// </summary>
+public class VariantOptionValidationAttribute : ValidationAttribute
+{
+    public override bool IsValid(object? value)
+    {
+        if (value is CreateVariantOptionValueDto dto)
+        {
+            // Either VariantOptionId or OptionName must be provided
+            return dto.VariantOptionId.HasValue || !string.IsNullOrWhiteSpace(dto.OptionName);
+        }
+        return false;
+    }
+
+    public override string FormatErrorMessage(string name)
+    {
+        return "Either VariantOptionId or OptionName must be provided";
+    }
+}
+
+/// <summary>
 /// DTO for creating a new product variant
 /// </summary>
 public class CreateProductVariantDto
@@ -43,13 +64,19 @@ public class CreateProductVariantDto
 /// <summary>
 /// DTO for creating variant option values
 /// </summary>
+[VariantOptionValidation]
 public class CreateVariantOptionValueDto
 {
     /// <summary>
-    /// ID of the variant option (e.g., Size, Color)
+    /// ID of the variant option (e.g., Size, Color) - Optional if OptionName is provided
     /// </summary>
-    [Required]
-    public Guid VariantOptionId { get; set; }
+    public Guid? VariantOptionId { get; set; }
+
+    /// <summary>
+    /// Name of the variant option (e.g., "Size", "Color") - Used to find or create VariantOption
+    /// </summary>
+    [StringLength(100, MinimumLength = 1)]
+    public string? OptionName { get; set; }
 
     /// <summary>
     /// Value for this option (e.g., "Large", "Red")

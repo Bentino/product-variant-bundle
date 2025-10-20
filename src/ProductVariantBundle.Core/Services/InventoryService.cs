@@ -2,6 +2,7 @@ using ProductVariantBundle.Core.Entities;
 using ProductVariantBundle.Core.Enums;
 using ProductVariantBundle.Core.Exceptions;
 using ProductVariantBundle.Core.Interfaces;
+using ProductVariantBundle.Core.Models; // Added this line
 using System.Data;
 
 namespace ProductVariantBundle.Core.Services;
@@ -168,5 +169,15 @@ public class InventoryService : IInventoryService
         };
 
         return await _inventoryRepository.AddAsync(inventoryRecord);
+    }
+
+    public Task<PagedResult<InventoryRecord>> GetInventoryRecordsAsync(int page = 1, int pageSize = 10, string? search = null, string? warehouseCode = null, string sortBy = "SKU", string sortDirection = "asc")
+    {
+        return _inventoryRepository.GetPagedAsync(page, pageSize, search, warehouseCode, sortBy, sortDirection);
+    }
+
+    public Task<InventoryStats> GetInventoryStatsAsync(string warehouseCode = "MAIN", int lowStockThreshold = 10)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -209,6 +209,17 @@ public class ProductRepository : IProductRepository
         await _context.SaveChangesAsync();
     }
 
+    public async Task DeleteVariantAsync(Guid variantId)
+    {
+        var variant = await _context.ProductVariants.FindAsync(variantId);
+        if (variant != null)
+        {
+            // Hard delete the variant and its related data
+            _context.ProductVariants.Remove(variant);
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task<bool> VariantCombinationExistsAsync(Guid productMasterId, string combinationKey, Guid? excludeId = null)
     {
         var query = _context.ProductVariants

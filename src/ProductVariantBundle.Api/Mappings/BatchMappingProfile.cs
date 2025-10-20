@@ -22,9 +22,9 @@ public class BatchMappingProfile : Profile
                 ProductMasterId = item.ProductMasterId,
                 Price = item.Price,
                 SKU = item.SKU,
-                OptionValues = item.OptionValues.Select(ov => new VariantOptionValueBatchItem
+                OptionValues = item.OptionValues.Where(ov => ov.VariantOptionId.HasValue).Select(ov => new VariantOptionValueBatchItem
                 {
-                    VariantOptionId = ov.VariantOptionId,
+                    VariantOptionId = ov.VariantOptionId!.Value,
                     Value = ov.Value
                 })
             })));

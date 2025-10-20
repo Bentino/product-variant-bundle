@@ -1,4 +1,5 @@
 using ProductVariantBundle.Core.Entities;
+using ProductVariantBundle.Core.Models;
 
 namespace ProductVariantBundle.Core.Interfaces;
 

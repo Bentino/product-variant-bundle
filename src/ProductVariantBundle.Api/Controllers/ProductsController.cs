@@ -284,17 +284,59 @@ public class ProductsController : ControllerBase
             // Set variant ID first
             variant.Id = Guid.NewGuid();
             
-            // Manually map OptionValues since AutoMapper ignores them
-            variant.OptionValues = createDto.OptionValues.Select(ov => new VariantOptionValue
+            // Process OptionValues - handle both VariantOptionId and OptionName
+            var optionValues = new List<VariantOptionValue>();
+            
+            foreach (var ov in createDto.OptionValues)
             {
-                Id = Guid.NewGuid(),
-                VariantOptionId = ov.VariantOptionId,
-                Value = ov.Value,
-                ProductVariantId = variant.Id, // Set the ProductVariantId
-                Status = EntityStatus.Active,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            }).ToList();
+                Guid variantOptionId;
+                
+                if (ov.VariantOptionId.HasValue)
+                {
+                    // Use existing VariantOptionId
+                    variantOptionId = ov.VariantOptionId.Value;
+                }
+                else if (!string.IsNullOrWhiteSpace(ov.OptionName))
+                {
+                    // Find or create VariantOption by name
+                    var existingOption = await _productService.GetVariantOptionByNameAsync(id, ov.OptionName);
+                    
+                    if (existingOption != null)
+                    {
+                        variantOptionId = existingOption.Id;
+                    }
+                    else
+                    {
+                        // Create new VariantOption
+                        var newOption = new VariantOption
+                        {
+                            Name = ov.OptionName,
+                            Slug = ov.OptionName.ToLowerInvariant().Replace(" ", "-"),
+                            ProductMasterId = id
+                        };
+                        
+                        var createdOption = await _productService.CreateVariantOptionAsync(newOption);
+                        variantOptionId = createdOption.Id;
+                    }
+                }
+                else
+                {
+                    throw new ValidationException("OptionValues", "Either VariantOptionId or OptionName must be provided");
+                }
+                
+                optionValues.Add(new VariantOptionValue
+                {
+                    Id = Guid.NewGuid(),
+                    VariantOptionId = variantOptionId,
+                    Value = ov.Value,
+                    ProductVariantId = variant.Id,
+                    Status = EntityStatus.Active,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+            
+            variant.OptionValues = optionValues;
             
             // Create the variant
             var createdVariant = await _productService.CreateVariantAsync(variant);

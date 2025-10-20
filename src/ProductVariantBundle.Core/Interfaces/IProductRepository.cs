@@ -16,6 +16,7 @@ public interface IProductRepository
     Task<ProductVariant?> GetVariantByIdAsync(Guid id);
     Task<ProductVariant> AddVariantAsync(ProductVariant variant);
     Task UpdateVariantAsync(ProductVariant variant);
+    Task DeleteVariantAsync(Guid variantId);
     Task<bool> VariantCombinationExistsAsync(Guid productMasterId, string combinationKey, Guid? excludeId = null);
     
     // Variant Options

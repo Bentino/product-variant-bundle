@@ -146,9 +146,8 @@ public class ProductService : IProductService
             throw new EntityNotFoundException("ProductVariant", id);
         }
 
-        // Note: This should also handle cascading delete of sellable item
-        // Implementation depends on repository behavior
-        await _productRepository.DeleteAsync(id);
+        // Delete the variant using the correct method
+        await _productRepository.DeleteVariantAsync(id);
     }
 
     public async Task<bool> ValidateSlugUniquenessAsync(string slug, Guid? excludeId = null)
@@ -362,6 +361,12 @@ public class ProductService : IProductService
     public async Task<VariantOption?> GetVariantOptionAsync(Guid id)
     {
         return await _productRepository.GetVariantOptionAsync(id);
+    }
+
+    public async Task<VariantOption?> GetVariantOptionByNameAsync(Guid productMasterId, string name)
+    {
+        var options = await _productRepository.GetVariantOptionsAsync(productMasterId);
+        return options.FirstOrDefault(o => o.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<IEnumerable<VariantOption>> GetVariantOptionsAsync(Guid productMasterId)

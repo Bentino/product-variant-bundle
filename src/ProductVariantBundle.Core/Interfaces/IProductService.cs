@@ -21,6 +21,7 @@ public interface IProductService
     // Variant Options
     Task<VariantOption> CreateVariantOptionAsync(VariantOption option);
     Task<VariantOption?> GetVariantOptionAsync(Guid id);
+    Task<VariantOption?> GetVariantOptionByNameAsync(Guid productMasterId, string name);
     Task<IEnumerable<VariantOption>> GetVariantOptionsAsync(Guid productMasterId);
     Task<VariantOption> UpdateVariantOptionAsync(VariantOption option);
     Task DeleteVariantOptionAsync(Guid id);
