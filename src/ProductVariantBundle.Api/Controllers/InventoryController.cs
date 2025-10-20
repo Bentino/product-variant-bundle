@@ -5,6 +5,7 @@ using ProductVariantBundle.Api.DTOs.Inventory;
 using ProductVariantBundle.Core.Interfaces;
 using ProductVariantBundle.Core.Exceptions;
 using ProductVariantBundle.Core.Entities;
+using ProductVariantBundle.Core.Models;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ProductVariantBundle.Api.Controllers;
@@ -21,6 +22,43 @@ public class InventoryController : ControllerBase
     {
         _inventoryService = inventoryService;
         _mapper = mapper;
+    }
+
+    /// <summary>
+    /// Get paginated inventory records with optional filtering
+    /// </summary>
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<DTOs.Common.PagedResult<InventoryRecordDto>>>> GetInventoryRecords(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null,
+        [FromQuery] string? warehouse = null,
+        [FromQuery] string sortBy = "sku",
+        [FromQuery] string sortDirection = "asc")
+    {
+        try
+        {
+            var result = await _inventoryService.GetInventoryRecordsAsync(page, pageSize, search, warehouse, sortBy, sortDirection);
+            var mappedResult = new DTOs.Common.PagedResult<InventoryRecordDto>
+            {
+                Data = _mapper.Map<List<InventoryRecordDto>>(result.Data),
+                Meta = new DTOs.Common.PaginationMeta
+                {
+                    Page = result.Meta.Page,
+                    PageSize = result.Meta.PageSize,
+                    Total = result.Meta.Total,
+                    TotalPages = result.Meta.TotalPages,
+                    HasNext = result.Meta.HasNext,
+                    HasPrevious = result.Meta.HasPrevious
+                }
+            };
+
+            return Ok(ApiResponse<DTOs.Common.PagedResult<InventoryRecordDto>>.Success(mappedResult));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<DTOs.Common.PagedResult<InventoryRecordDto>>.Error($"Internal server error: {ex.Message}"));
+        }
     }
 
     /// <summary>

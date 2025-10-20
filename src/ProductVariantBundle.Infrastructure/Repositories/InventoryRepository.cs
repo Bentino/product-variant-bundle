@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ProductVariantBundle.Core.Entities;
 using ProductVariantBundle.Core.Enums;
 using ProductVariantBundle.Core.Interfaces;
+using ProductVariantBundle.Core.Models;
 using ProductVariantBundle.Infrastructure.Data;
 
 namespace ProductVariantBundle.Infrastructure.Repositories;
@@ -139,5 +140,62 @@ public class InventoryRepository : IInventoryRepository
     {
         return await _context.Warehouses
             .FirstOrDefaultAsync(w => w.Code == warehouseCode && w.Status == EntityStatus.Active);
+    }
+
+    public async Task<PagedResult<InventoryRecord>> GetPagedAsync(int page, int pageSize, string? search, string? warehouseCode, string sortBy, string sortDirection)
+    {
+        var query = _context.InventoryRecords
+            .Include(ir => ir.SellableItem)
+            .Include(ir => ir.Warehouse)
+            .Where(ir => ir.Status == EntityStatus.Active);
+
+        // Apply search filter
+        if (!string.IsNullOrEmpty(search))
+        {
+            query = query.Where(ir => ir.SellableItem.SKU.Contains(search));
+        }
+
+        // Apply warehouse filter
+        if (!string.IsNullOrEmpty(warehouseCode))
+        {
+            query = query.Where(ir => ir.Warehouse.Code == warehouseCode);
+        }
+
+        // Apply sorting
+        query = sortBy.ToLower() switch
+        {
+            "sku" => sortDirection.ToLower() == "desc" 
+                ? query.OrderByDescending(ir => ir.SellableItem.SKU)
+                : query.OrderBy(ir => ir.SellableItem.SKU),
+            "onhand" => sortDirection.ToLower() == "desc"
+                ? query.OrderByDescending(ir => ir.OnHand)
+                : query.OrderBy(ir => ir.OnHand),
+            "available" => sortDirection.ToLower() == "desc"
+                ? query.OrderByDescending(ir => ir.OnHand - ir.Reserved)
+                : query.OrderBy(ir => ir.OnHand - ir.Reserved),
+            _ => query.OrderBy(ir => ir.SellableItem.SKU)
+        };
+
+        var totalCount = await query.CountAsync();
+        var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<InventoryRecord>
+        {
+            Data = items,
+            Meta = new PaginationMeta
+            {
+                Page = page,
+                PageSize = pageSize,
+                Total = totalCount,
+                TotalPages = totalPages,
+                HasNext = page < totalPages,
+                HasPrevious = page > 1
+            }
+        };
     }
 }
