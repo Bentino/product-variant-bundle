@@ -12,6 +12,7 @@ public class BundleService : IBundleService
     private readonly IBundleRepository _bundleRepository;
     private readonly ISellableItemService _sellableItemService;
     private readonly IInventoryRepository _inventoryRepository;
+    private readonly IInventoryService _inventoryService;
     private readonly IWarehouseService _warehouseService;
     private readonly BundleValidator _validator;
     private readonly BundleAvailabilityCalculator _availabilityCalculator;
@@ -21,6 +22,7 @@ public class BundleService : IBundleService
         IBundleRepository bundleRepository, 
         ISellableItemService sellableItemService,
         IInventoryRepository inventoryRepository,
+        IInventoryService inventoryService,
         IWarehouseService warehouseService,
         BundleValidator validator,
         BundleAvailabilityCalculator availabilityCalculator,
@@ -29,6 +31,7 @@ public class BundleService : IBundleService
         _bundleRepository = bundleRepository;
         _sellableItemService = sellableItemService;
         _inventoryRepository = inventoryRepository;
+        _inventoryService = inventoryService;
         _warehouseService = warehouseService;
         _validator = validator;
         _availabilityCalculator = availabilityCalculator;
@@ -59,6 +62,18 @@ public class BundleService : IBundleService
                     sku);
                 
                 createdBundle.SellableItem = sellableItem;
+                
+                // Create initial inventory record for the bundle
+                var defaultWarehouse = await _warehouseService.GetByCodeAsync("MAIN");
+                if (defaultWarehouse != null)
+                {
+                    await _inventoryService.CreateInventoryRecordAsync(
+                        sellableItem.Id, 
+                        defaultWarehouse.Id, 
+                        onHand: 0, 
+                        reserved: 0
+                    );
+                }
                 
                 // Update the bundle in repository to save the SellableItem reference
                 await _bundleRepository.UpdateAsync(createdBundle);

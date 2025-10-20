@@ -17,12 +17,21 @@ public class ProductsController : ControllerBase
 {
     private readonly IProductService _productService;
     private readonly ISellableItemService _sellableItemService;
+    private readonly IInventoryService _inventoryService;
+    private readonly IWarehouseService _warehouseService;
     private readonly IMapper _mapper;
 
-    public ProductsController(IProductService productService, ISellableItemService sellableItemService, IMapper mapper)
+    public ProductsController(
+        IProductService productService, 
+        ISellableItemService sellableItemService,
+        IInventoryService inventoryService,
+        IWarehouseService warehouseService,
+        IMapper mapper)
     {
         _productService = productService;
         _sellableItemService = sellableItemService;
+        _inventoryService = inventoryService;
+        _warehouseService = warehouseService;
         _mapper = mapper;
     }
 
@@ -344,11 +353,23 @@ public class ProductsController : ControllerBase
             var createdVariant = await _productService.CreateVariantAsync(variant);
             
             // Create associated sellable item with SKU
-            await _sellableItemService.CreateSellableItemAsync(
+            var sellableItem = await _sellableItemService.CreateSellableItemAsync(
                 SellableItemType.Variant, 
                 createdVariant.Id, 
                 createDto.SKU
             );
+            
+            // Create initial inventory record for the variant
+            var defaultWarehouse = await _warehouseService.GetByCodeAsync("MAIN");
+            if (defaultWarehouse != null)
+            {
+                await _inventoryService.CreateInventoryRecordAsync(
+                    sellableItem.Id, 
+                    defaultWarehouse.Id, 
+                    onHand: 0, 
+                    reserved: 0
+                );
+            }
             
             var variantDto = _mapper.Map<ProductVariantDto>(createdVariant);
             variantDto.SKU = createDto.SKU; // Set SKU manually

@@ -9,11 +9,16 @@ namespace ProductVariantBundle.Core.Services;
 public class SellableItemService : ISellableItemService
 {
     private readonly ISellableItemRepository _sellableItemRepository;
+    private readonly IInventoryRepository _inventoryRepository;
     private readonly SkuValidator _skuValidator;
 
-    public SellableItemService(ISellableItemRepository sellableItemRepository, SkuValidator skuValidator)
+    public SellableItemService(
+        ISellableItemRepository sellableItemRepository, 
+        IInventoryRepository inventoryRepository,
+        SkuValidator skuValidator)
     {
         _sellableItemRepository = sellableItemRepository;
+        _inventoryRepository = inventoryRepository;
         _skuValidator = skuValidator;
     }
 
@@ -99,6 +104,14 @@ public class SellableItemService : ISellableItemService
             throw new EntityNotFoundException("SellableItem", id);
         }
 
+        // Delete associated inventory records first
+        var inventoryRecords = await _inventoryRepository.GetBySellableItemIdAsync(id);
+        foreach (var inventoryRecord in inventoryRecords)
+        {
+            await _inventoryRepository.DeleteAsync(inventoryRecord.Id);
+        }
+
+        // Then delete the sellable item
         await _sellableItemRepository.DeleteAsync(id);
     }
 }

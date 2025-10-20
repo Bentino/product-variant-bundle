@@ -46,6 +46,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IWarehouseRepository, WarehouseRepository>();
         services.AddScoped<IBatchOperationRepository, BatchOperationRepository>();
 
+        // Add services
+        services.AddScoped<ISampleDataService, ProductVariantBundle.Infrastructure.Services.SampleDataService>();
+
         return services;
     }
 }
