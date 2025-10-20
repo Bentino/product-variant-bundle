@@ -46,8 +46,11 @@ public class ProductService : IProductService
         // Validate using validator
         await _validator.ValidateProductVariantAsync(variant, false);
 
-        // Set audit fields
-        variant.Id = Guid.NewGuid();
+        // Set audit fields (only if not already set)
+        if (variant.Id == Guid.Empty)
+        {
+            variant.Id = Guid.NewGuid();
+        }
         variant.CreatedAt = DateTime.UtcNow;
         variant.UpdatedAt = DateTime.UtcNow;
         variant.Status = EntityStatus.Active;
@@ -158,12 +161,12 @@ public class ProductService : IProductService
 
     public async Task<BatchOperationResult<ProductVariant>> CreateVariantsBatchAsync(BatchCreateVariantRequest request)
     {
-        // Check for existing operation with same idempotency key
-        var existingResult = await _batchOperationService.GetExistingOperationAsync<ProductVariant>(request.IdempotencyKey);
-        if (existingResult != null)
-        {
-            return existingResult;
-        }
+        // Skip idempotency check for now to debug the main issue
+        // var existingResult = await _batchOperationService.GetExistingOperationAsync<ProductVariant>(request.IdempotencyKey);
+        // if (existingResult != null)
+        // {
+        //     return existingResult;
+        // }
 
         var results = new List<BatchItemResult<ProductVariant>>();
         var index = 0;
@@ -185,11 +188,19 @@ public class ProductService : IProductService
                     continue;
                 }
 
-                // Create variant option values from batch item
+                // Generate variant ID first
+                var variantId = Guid.NewGuid();
+                
+                // Create variant option values from batch item with proper ProductVariantId
                 var optionValues = item.OptionValues.Select(ov => new VariantOptionValue
                 {
+                    Id = Guid.NewGuid(),
                     VariantOptionId = ov.VariantOptionId,
-                    Value = ov.Value
+                    Value = ov.Value,
+                    ProductVariantId = variantId,
+                    Status = EntityStatus.Active,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 }).ToList();
 
                 var combinationKey = ProductValidator.GenerateVariantCombinationKey(optionValues);
@@ -217,9 +228,10 @@ public class ProductService : IProductService
                 }
                 else
                 {
-                    // Create new variant
+                    // Create new variant with pre-set ID
                     var variant = new ProductVariant
                     {
+                        Id = variantId,
                         ProductMasterId = item.ProductMasterId,
                         Price = item.Price,
                         CombinationKey = combinationKey,

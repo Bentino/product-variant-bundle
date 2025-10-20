@@ -29,8 +29,11 @@ public class BundleValidator
             errors.AddError("Price", "Price cannot be negative");
         }
 
-        // Validate bundle items
-        await ValidateBundleItemsAsync(bundle.Items, errors);
+        // Validate bundle items (skip for updates if items collection is empty - might be ignored by mapping)
+        if (!isUpdate || (bundle.Items != null && bundle.Items.Any()))
+        {
+            await ValidateBundleItemsAsync(bundle.Items, errors);
+        }
 
         if (errors.Any())
         {

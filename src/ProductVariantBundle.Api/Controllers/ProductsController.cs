@@ -281,12 +281,16 @@ public class ProductsController : ControllerBase
             // Map DTO to entity
             var variant = _mapper.Map<ProductVariant>(createDto);
             
+            // Set variant ID first
+            variant.Id = Guid.NewGuid();
+            
             // Manually map OptionValues since AutoMapper ignores them
             variant.OptionValues = createDto.OptionValues.Select(ov => new VariantOptionValue
             {
                 Id = Guid.NewGuid(),
                 VariantOptionId = ov.VariantOptionId,
                 Value = ov.Value,
+                ProductVariantId = variant.Id, // Set the ProductVariantId
                 Status = EntityStatus.Active,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -494,6 +498,64 @@ public class ProductsController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, ApiResponse<VariantOptionDto>.Error($"Internal server error: {ex.Message}"));
+        }
+    }
+
+    /// <summary>
+    /// Update a variant option
+    /// </summary>
+    [HttpPut("{id:guid}/options/{optionId:guid}")]
+    public async Task<ActionResult<ApiResponse<VariantOptionDto>>> UpdateVariantOption(
+        Guid id, Guid optionId, [FromBody] UpdateVariantOptionDto updateDto)
+    {
+        try
+        {
+            var existingOption = await _productService.GetVariantOptionAsync(optionId);
+            if (existingOption == null || existingOption.ProductMasterId != id)
+            {
+                return NotFound(ApiResponse<VariantOptionDto>.Error("Variant option not found"));
+            }
+
+            _mapper.Map(updateDto, existingOption);
+            var updatedOption = await _productService.UpdateVariantOptionAsync(existingOption);
+            var optionDto = _mapper.Map<VariantOptionDto>(updatedOption);
+
+            return Ok(ApiResponse<VariantOptionDto>.Success(optionDto));
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(ApiResponse<VariantOptionDto>.Error(ex.Message));
+        }
+        catch (DuplicateEntityException ex)
+        {
+            return Conflict(ApiResponse<VariantOptionDto>.Error(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<VariantOptionDto>.Error($"Internal server error: {ex.Message}"));
+        }
+    }
+
+    /// <summary>
+    /// Delete a variant option
+    /// </summary>
+    [HttpDelete("{id:guid}/options/{optionId:guid}")]
+    public async Task<ActionResult<ApiResponse>> DeleteVariantOption(Guid id, Guid optionId)
+    {
+        try
+        {
+            var option = await _productService.GetVariantOptionAsync(optionId);
+            if (option == null || option.ProductMasterId != id)
+            {
+                return NotFound(ApiResponse.Error("Variant option not found"));
+            }
+
+            await _productService.DeleteVariantOptionAsync(optionId);
+            return Ok(ApiResponse.Success());
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse.Error($"Internal server error: {ex.Message}"));
         }
     }
 }

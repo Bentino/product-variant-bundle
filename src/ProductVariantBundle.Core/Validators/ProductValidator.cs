@@ -111,10 +111,10 @@ public class ProductValidator
             return string.Empty;
         }
 
-        // Sort by option slug to ensure consistent ordering
+        // Sort by VariantOptionId to ensure consistent ordering (since we don't have VariantOption loaded)
         var sortedValues = optionValues
-            .OrderBy(ov => ov.VariantOption.Slug)
-            .Select(ov => $"{ov.VariantOption.Slug}:{ov.Value.Trim().ToLowerInvariant()}");
+            .OrderBy(ov => ov.VariantOptionId)
+            .Select(ov => $"{ov.VariantOptionId}:{ov.Value.Trim().ToLowerInvariant()}");
 
         return string.Join("|", sortedValues);
     }
