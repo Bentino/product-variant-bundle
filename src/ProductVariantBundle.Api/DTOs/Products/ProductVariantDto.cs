@@ -12,5 +12,8 @@ public class ProductVariantDto : BaseDto
     public string SKU { get; set; } = string.Empty;
     public JsonDocument? Attributes { get; set; }
     public ICollection<VariantOptionValueDto> OptionValues { get; set; } = new List<VariantOptionValueDto>();
+    
+    // SellableItem information
+    public Guid? SellableItemId { get; set; }
 }
 

@@ -30,7 +30,8 @@ public class ProductMappingProfile : Profile
 
         // ProductVariant mappings
         CreateMap<ProductVariant, ProductVariantDto>()
-            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SellableItem != null ? src.SellableItem.SKU : string.Empty));
+            .ForMember(dest => dest.SKU, opt => opt.MapFrom(src => src.SellableItem != null ? src.SellableItem.SKU : string.Empty))
+            .ForMember(dest => dest.SellableItemId, opt => opt.MapFrom(src => src.SellableItem != null ? src.SellableItem.Id : (Guid?)null));
         
         CreateMap<CreateProductVariantDto, ProductVariant>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
