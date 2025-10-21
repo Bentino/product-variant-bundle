@@ -54,10 +54,10 @@
           class="input w-40"
           @change="onFilterChange"
         >
-          <option value="">All Categories</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Clothing">Clothing</option>
-          <option value="Books">Books</option>
+          <option value="">- All Categories -</option>
+          <option value="Computer Hardware">Computer Hardware</option>
+          <option value="Mobile Phone">Mobile Phone</option>
+          <option value="Accessory">Accessory</option>
         </select>
         
         <!-- Status Filter -->

@@ -56,12 +56,10 @@
           :class="{ 'border-red-500': formData.category.error && formData.category.touched }"
           @blur="validateSingleField('category')"
         >
-          <option value="">Select a category</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Clothing">Clothing</option>
-          <option value="Books">Books</option>
-          <option value="Home & Garden">Home & Garden</option>
-          <option value="Sports">Sports</option>
+          <option value="">- All Categories -</option>
+          <option value="Computer Hardware">Computer Hardware</option>
+          <option value="Mobile Phone">Mobile Phone</option>
+          <option value="Accessory">Accessory</option>
         </select>
         <p v-if="formData.category.error && formData.category.touched" class="mt-1 text-sm text-red-600">
           {{ formData.category.error }}
