@@ -195,7 +195,7 @@ const allSellableItems = computed(() => {
             )
             
             items.push({
-              id: variant.id,
+              id: variant.sellableItemId,
               sku: variant.sku,
               type: 0, // Variant type
               available: inventoryRecord?.available || 0,
@@ -221,7 +221,7 @@ const allSellableItems = computed(() => {
         )
         
         items.push({
-          id: bundle.id,
+          id: bundle.sellableItemId || bundle.id,
           sku: bundle.sku,
           type: 1, // Bundle type
           available: inventoryRecord?.available || 0,
