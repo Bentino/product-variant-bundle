@@ -10,7 +10,7 @@ namespace ProductVariantBundle.Core.Services;
 public class BundleService : IBundleService
 {
     private readonly IBundleRepository _bundleRepository;
-    private readonly ISellableItemService _sellableItemService;
+    private readonly ISellableItemRepository _sellableItemRepository;
     private readonly IInventoryRepository _inventoryRepository;
     private readonly IInventoryService _inventoryService;
     private readonly IWarehouseService _warehouseService;
@@ -20,7 +20,7 @@ public class BundleService : IBundleService
 
     public BundleService(
         IBundleRepository bundleRepository, 
-        ISellableItemService sellableItemService,
+        ISellableItemRepository sellableItemRepository,
         IInventoryRepository inventoryRepository,
         IInventoryService inventoryService,
         IWarehouseService warehouseService,
@@ -29,7 +29,7 @@ public class BundleService : IBundleService
         BatchOperationService batchOperationService)
     {
         _bundleRepository = bundleRepository;
-        _sellableItemService = sellableItemService;
+        _sellableItemRepository = sellableItemRepository;
         _inventoryRepository = inventoryRepository;
         _inventoryService = inventoryService;
         _warehouseService = warehouseService;
@@ -56,10 +56,17 @@ public class BundleService : IBundleService
         {
             try
             {
-                var sellableItem = await _sellableItemService.CreateSellableItemAsync(
-                    SellableItemType.Bundle, 
-                    createdBundle.Id, 
-                    sku);
+                // Create SellableItem through repository
+                var sellableItem = new SellableItem
+                {
+                    Id = Guid.NewGuid(),
+                    SKU = sku,
+                    Type = SellableItemType.Bundle,
+                    BundleId = createdBundle.Id,
+                    Status = EntityStatus.Active
+                };
+
+                await _sellableItemRepository.AddAsync(sellableItem);
                 
                 createdBundle.SellableItem = sellableItem;
                 
@@ -136,10 +143,10 @@ public class BundleService : IBundleService
         }
 
         // Find and delete associated SellableItem first
-        var sellableItem = await _sellableItemService.GetByBundleIdAsync(id);
+        var sellableItem = await _sellableItemRepository.GetByBundleIdAsync(id);
         if (sellableItem != null)
         {
-            await _sellableItemService.DeleteSellableItemAsync(sellableItem.Id);
+            await _sellableItemRepository.DeleteAsync(sellableItem.Id);
         }
 
         await _bundleRepository.DeleteAsync(id);
