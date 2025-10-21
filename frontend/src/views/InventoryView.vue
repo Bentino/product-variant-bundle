@@ -9,6 +9,20 @@
         </p>
       </div>
       <div class="flex items-center space-x-3">
+        <button 
+          @click="showResetDialog = true"
+          class="btn btn-outline-orange"
+        >
+          <ArrowPathIcon class="w-4 h-4 mr-2" />
+          Reset to Sample Data
+        </button>
+        <button 
+          @click="showPurgeDialog = true"
+          class="btn btn-outline-red"
+        >
+          <TrashIcon class="w-4 h-4 mr-2" />
+          Purge All Data
+        </button>
         <button class="btn btn-primary" @click="showUpdateStockModal = true">
           <PlusIcon class="w-4 h-4 mr-2" />
           Update Stock
@@ -413,6 +427,94 @@
         </div>
       </form>
     </Modal>
+
+    <!-- Reset Data Confirmation Dialog -->
+    <div v-if="showResetDialog" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-orange-100">
+            <ExclamationTriangleIcon class="h-6 w-6 text-orange-600" />
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mt-4">Reset to Sample Data</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500">
+              This action will replace all current data with sample demonstration data.
+            </p>
+            <ul class="text-sm text-gray-500 mt-2 text-left">
+              <li>• Current products and variants will be deleted</li>
+              <li>• Current bundles will be deleted</li>
+              <li>• Current inventory records will be deleted</li>
+              <li>• Sample data will be loaded automatically</li>
+            </ul>
+            <p class="text-sm text-orange-600 mt-3 font-medium">
+              This action cannot be undone.
+            </p>
+          </div>
+          <div class="items-center px-4 py-3">
+            <div class="flex space-x-3">
+              <button
+                @click="showResetDialog = false"
+                class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                @click="confirmResetData"
+                :disabled="resetting"
+                class="px-4 py-2 bg-orange-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50"
+              >
+                <span v-if="resetting">Resetting...</span>
+                <span v-else>Reset to Sample Data</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Purge Data Confirmation Dialog -->
+    <div v-if="showPurgeDialog" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+            <ExclamationTriangleIcon class="h-6 w-6 text-red-600" />
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 mt-4">Purge All Data</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500">
+              This action will permanently delete ALL data from the system:
+            </p>
+            <ul class="text-sm text-gray-500 mt-2 text-left">
+              <li>• All products and variants</li>
+              <li>• All bundles</li>
+              <li>• All inventory records</li>
+              <li>• All sellable items</li>
+            </ul>
+            <p class="text-sm text-red-600 mt-3 font-medium">
+              This action cannot be undone and will leave the system completely empty.
+            </p>
+          </div>
+          <div class="items-center px-4 py-3">
+            <div class="flex space-x-3">
+              <button
+                @click="showPurgeDialog = false"
+                class="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                @click="confirmPurgeData"
+                :disabled="purging"
+                class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+              >
+                <span v-if="purging">Purging...</span>
+                <span v-else>Purge All Data</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -424,7 +526,9 @@ import {
   CubeIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  XCircleIcon
+  XCircleIcon,
+  ArrowPathIcon,
+  TrashIcon
 } from '@heroicons/vue/24/outline'
 import DataTable from '@/components/DataTable.vue'
 import Modal from '@/components/Modal.vue'
@@ -468,6 +572,12 @@ const showUpdateStockModal = ref(false)
 const showItemUpdateModal = ref(false)
 const showReserveModal = ref(false)
 const selectedItem = ref<InventoryRecord | null>(null)
+
+// Data management dialogs
+const showResetDialog = ref(false)
+const showPurgeDialog = ref(false)
+const resetting = ref(false)
+const purging = ref(false)
 
 // Form states
 const updateStockForm = reactive({
@@ -672,5 +782,62 @@ const getStockLevelClass = (available: number) => {
   if (available === 0) return 'bg-red-100 text-red-800'
   if (available < 10) return 'bg-yellow-100 text-yellow-800'
   return 'bg-green-100 text-green-800'
+}
+
+// Data management functions
+const confirmResetData = async () => {
+  resetting.value = true
+  try {
+    const response = await fetch('/api/admin/reset-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    const result = await response.json()
+    
+    if (response.ok && result.data?.success) {
+      // Refresh all queries
+      await queryClient.invalidateQueries()
+      // Force refetch inventory data
+      await queryClient.refetchQueries(['inventory'])
+      console.log('Data reset successfully:', result)
+    } else {
+      throw new Error(result.data?.message || result.message || 'Failed to reset data')
+    }
+  } catch (error) {
+    console.error('Reset error:', error)
+  } finally {
+    resetting.value = false
+    showResetDialog.value = false
+  }
+}
+
+const confirmPurgeData = async () => {
+  purging.value = true
+  try {
+    const response = await fetch('/api/admin/purge-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    const result = await response.json()
+    
+    if (response.ok && result.data?.success) {
+      // Refresh all queries
+      queryClient.invalidateQueries()
+      console.log('Data purged successfully:', result)
+    } else {
+      throw new Error(result.data?.message || result.message || 'Failed to purge data')
+    }
+  } catch (error) {
+    console.error('Purge error:', error)
+  } finally {
+    purging.value = false
+    showPurgeDialog.value = false
+  }
 }
 </script>

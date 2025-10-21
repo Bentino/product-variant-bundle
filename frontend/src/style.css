@@ -29,6 +29,14 @@
     @apply btn bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500;
   }
   
+  .btn-outline-orange {
+    @apply btn border border-orange-300 text-orange-700 bg-white hover:bg-orange-50 focus:ring-orange-500;
+  }
+  
+  .btn-outline-red {
+    @apply btn border border-red-300 text-red-700 bg-white hover:bg-red-50 focus:ring-red-500;
+  }
+  
   .btn-sm {
     @apply px-3 py-1.5 text-xs;
   }
