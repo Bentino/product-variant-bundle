@@ -1,8 +1,22 @@
 # Product Variant Bundle API Documentation
 
+## ⚠️ **MVP Demo Version**
+
+**This is a Minimum Viable Product (MVP) demonstration** showcasing the architectural design and core concepts for a product variant and bundle management system. 
+
+### **Current Status: Proof of Concept**
+- ✅ **Core functionality implemented** - Basic CRUD operations and data management
+- ✅ **Architecture validated** - Clean Architecture with proper separation of concerns  
+- ✅ **Scalable design** - Flexible schema and extensible structure
+- ⚠️ **Limited endpoints** - Not all REST operations are implemented
+- ⚠️ **Demo purposes** - Suitable for concept validation and further development
+
+### **Production Readiness: ~30%**
+This system demonstrates the foundational architecture and can be extended to a full production system.
+
 ## Overview
 
-The Product Variant Bundle API is a comprehensive RESTful API for managing product catalogs with variants and bundles. Built with .NET 8 and PostgreSQL, it provides flexible schema design, inventory management, and batch operations.
+The Product Variant Bundle API is a RESTful API for managing product catalogs with variants and bundles. Built with .NET 8 and PostgreSQL, it provides flexible schema design, inventory management, and batch operations.
 
 ## Quick Start
 
@@ -30,86 +44,119 @@ The Product Variant Bundle API is a comprehensive RESTful API for managing produ
 
 ## API Endpoints
 
-### Products
+### ✅ **Implemented Endpoints**
+
+#### **Products**
 - `GET /api/products` - List products with filtering and pagination
 - `POST /api/products` - Create a new product master
-- `GET /api/products/{id}` - Get product by ID
-- `PUT /api/products/{id}` - Update product
-- `DELETE /api/products/{id}` - Delete product
-- `GET /api/products/{id}/variants` - Get product variants
-- `POST /api/products/{id}/variants` - Create variant
-- `GET /api/products/{id}/variants/{variantId}` - Get specific variant
-- `PUT /api/products/{id}/variants/{variantId}` - Update variant
-- `DELETE /api/products/{id}/variants/{variantId}` - Delete variant
 
-### Bundles
+#### **Bundles**
 - `GET /api/bundles` - List bundles with filtering and pagination
 - `POST /api/bundles` - Create a new bundle
-- `GET /api/bundles/{id}` - Get bundle by ID
-- `PUT /api/bundles/{id}` - Update bundle
-- `DELETE /api/bundles/{id}` - Delete bundle
-- `GET /api/bundles/{id}/availability` - Calculate bundle availability
-- `POST /api/bundles/{id}/availability/reserve-check` - Check availability with locking
 
-### Inventory
-- `GET /api/inventory/{sku}` - Get inventory record
-- `PUT /api/inventory/{sku}/stock` - Update stock levels
-- `PATCH /api/inventory/{sku}/onhand` - Update on-hand quantity only
-- `POST /api/inventory/{sku}/reserve` - Reserve stock
-- `POST /api/inventory/{sku}/release` - Release reserved stock
-- `GET /api/inventory/{sku}/available` - Get available quantity
-- `POST /api/inventory/{sku}/inquiry` - Detailed stock inquiry
-- `GET /api/inventory/warehouse/{warehouseCode}` - Get warehouse inventory
+#### **Inventory**
+- `GET /api/inventory` - List inventory records with filtering
+- `POST /api/inventory` - Create inventory record
 
-### Batch Operations
+#### **Batch Operations**
 - `POST /api/batch/variants` - Create multiple variants
 - `PUT /api/batch/variants` - Update multiple variants
 - `POST /api/batch/bundles` - Create multiple bundles
 
-### Health
+#### **Health & Admin**
 - `GET /api/health` - API health status
-- `GET /api/health/database` - Database health status
+- `POST /api/admin/reset-data` - Reset database with sample data
+- `DELETE /api/admin/clear-data` - Clear all data
+
+### ⚠️ **Not Yet Implemented (Future Development)**
+
+#### **Individual Resource Management**
+- `GET /api/products/{id}` - Get product by ID
+- `PUT /api/products/{id}` - Update product  
+- `DELETE /api/products/{id}` - Delete product
+- `GET /api/bundles/{id}` - Get bundle by ID
+- `PUT /api/bundles/{id}` - Update bundle
+- `DELETE /api/bundles/{id}` - Delete bundle
+
+#### **Variant Management**
+- `GET /api/products/{id}/variants` - Get product variants
+- `POST /api/products/{id}/variants` - Create variant
+- `PUT /api/products/{id}/variants/{variantId}` - Update variant
+- `DELETE /api/products/{id}/variants/{variantId}` - Delete variant
+
+#### **Advanced Inventory**
+- `GET /api/inventory/{sku}` - Get inventory by SKU
+- `PUT /api/inventory/{sku}/stock` - Update stock levels
+- `POST /api/inventory/{sku}/reserve` - Reserve stock
+- `POST /api/inventory/{sku}/release` - Release reserved stock
+
+#### **Bundle Availability**
+- `GET /api/bundles/{id}/availability` - Calculate bundle availability
+- `POST /api/bundles/{id}/availability/reserve-check` - Check availability with locking
+
+### 🔧 **Workarounds for Missing Endpoints**
+
+#### **Product Management**
+- **Edit/Delete Products**: Use frontend interface or database direct access
+- **Individual Product Details**: Filter list endpoint by ID or slug
+
+#### **Inventory Updates**  
+- **Stock Management**: Use inventory list endpoint to find records, then update via database
+- **Stock Tracking**: Available through inventory records, but no real-time updates
+
+#### **Bundle Operations**
+- **Bundle Availability**: Calculate manually from component inventory
+- **Bundle Management**: Create new bundles instead of updating existing ones
 
 ## Key Features
 
-### 1. Flexible Schema Design
+### ✅ **Implemented Features**
+
+#### **1. Flexible Schema Design**
 - **JSONB Attributes**: Products, variants, and bundles support extensible JSON attributes
 - **No Schema Migrations**: Add new properties without database changes
 - **PostgreSQL Optimization**: Leverages JSONB indexing and constraints
 
-### 2. Global SKU Management
+#### **2. Global SKU Management**
 - **Unique Namespace**: All sellable items (variants and bundles) share the same SKU space
 - **Automatic Validation**: Prevents duplicate SKUs across different item types
 - **Efficient Lookups**: Optimized database indexes for SKU searches
 
-### 3. Virtual Bundle System
-- **No Physical Inventory**: Bundles don't store stock directly
-- **Dynamic Availability**: Calculated from component inventory levels
-- **Real-time Updates**: Availability changes when component stock changes
-- **Formula**: `min(floor((on_hand - reserved) / required_quantity))` for each component
-
-### 4. Multi-Warehouse Support
-- **Warehouse-Specific Inventory**: Track stock per warehouse
-- **Flexible Operations**: Support for multiple distribution centers
-- **Default Warehouse**: "MAIN" warehouse created automatically
-
-### 5. Advanced Inventory Management
-- **Stock Reservations**: Reserve inventory for pending orders
-- **Transaction Safety**: Row-level locking for concurrent operations
-- **Availability Calculation**: Real-time available stock (on_hand - reserved)
-- **Audit Trail**: Track all inventory changes with timestamps
-
-### 6. Batch Operations
+#### **3. Batch Operations**
 - **Idempotency**: Prevent duplicate processing with idempotency keys
 - **Conflict Resolution**: Skip, update, or fail strategies for conflicts
 - **Atomic Operations**: All-or-nothing processing with rollback support
 - **Performance**: Efficient bulk operations for large datasets
 
-### 7. Comprehensive Validation
-- **Business Rules**: Enforce product and bundle constraints
-- **Data Integrity**: Validate relationships and dependencies
-- **Error Details**: Detailed validation messages for troubleshooting
-- **RFC 7807 Compliance**: Standardized error response format
+#### **4. Data Management**
+- **Sample Data Generation**: Reset and populate database with sample data
+- **Clean Architecture**: Proper separation of concerns and testability
+- **Comprehensive Validation**: Business rules and data integrity validation
+
+### ⚠️ **Partially Implemented**
+
+#### **5. Inventory Management**
+- ✅ **Basic Inventory**: Create and list inventory records
+- ✅ **Stock Tracking**: Track on-hand and reserved quantities
+- ❌ **Real-time Updates**: No API endpoints for stock updates
+- ❌ **Reservations**: No reservation system implemented
+- ❌ **Multi-warehouse Operations**: Limited warehouse support
+
+#### **6. Bundle System**
+- ✅ **Bundle Creation**: Create bundles with multiple items
+- ✅ **Component Tracking**: Track bundle items and quantities
+- ❌ **Availability Calculation**: No real-time availability checking
+- ❌ **Dynamic Pricing**: No automatic price calculations
+
+### 🚧 **Future Development**
+
+#### **7. Advanced Features (Not Implemented)**
+- **Individual Resource Management**: CRUD operations for single items
+- **Real-time Inventory**: Live stock updates and reservations
+- **Bundle Availability**: Dynamic availability calculation
+- **Advanced Search**: Full-text search and complex filtering
+- **Authentication**: User management and access control
+- **Audit Trail**: Complete change tracking and history
 
 ## Data Models
 
@@ -415,6 +462,46 @@ docker compose exec api dotnet test --collect:"XPlat Code Coverage"
 - **Performance Metrics**: Request timing and throughput
 - **Business Events**: Audit trail for important operations
 
+## MVP Limitations & Workarounds
+
+### **Current Limitations**
+
+#### **1. Individual Resource Management**
+- ❌ **No GET/PUT/DELETE by ID** - Cannot manage single products/bundles
+- **Workaround**: Use list endpoints with filters, or direct database access
+- **Impact**: Limited frontend functionality, no detail pages
+
+#### **2. Real-time Inventory**
+- ❌ **No stock update endpoints** - Cannot update inventory via API
+- **Workaround**: Update inventory records directly in database
+- **Impact**: No real-time stock management, manual inventory updates
+
+#### **3. Bundle Availability**
+- ❌ **No availability calculation** - Cannot check if bundle can be sold
+- **Workaround**: Calculate manually from component inventory
+- **Impact**: No automated bundle availability, manual checking required
+
+#### **4. Advanced Search**
+- ❌ **Limited filtering** - Basic search only
+- **Workaround**: Use existing filters or database queries
+- **Impact**: Limited discovery features
+
+### **Production Readiness Checklist**
+
+#### **✅ Ready for Production**
+- Data models and relationships
+- Basic CRUD operations
+- Batch processing
+- Error handling and validation
+- Database optimization
+
+#### **🚧 Needs Development**
+- Individual resource endpoints
+- Real-time inventory management
+- Bundle availability system
+- Advanced search and filtering
+- Authentication and authorization
+
 ## Troubleshooting
 
 ### Common Issues
@@ -445,13 +532,13 @@ docker compose exec api dotnet test --collect:"XPlat Code Coverage"
    docker compose logs api --tail=50
    ```
 
-4. **Swagger UI Issues**
+4. **Missing Endpoints (404)**
    ```bash
-   # Verify Swagger JSON
+   # Check implemented endpoints
    curl http://localhost:8080/swagger/v1/swagger.json
    
-   # Check for XML documentation
-   docker compose exec api ls -la *.xml
+   # Verify endpoint exists in documentation
+   # Many endpoints in docs are not yet implemented
    ```
 
 ### Debug Mode
