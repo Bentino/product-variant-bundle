@@ -74,16 +74,28 @@ curl -X POST http://localhost:8080/api/admin/reset-data \
 
 ## 🛠️ Development
 
+### Important: All commands run in containers
+This project uses Docker containers for development. Commands are automatically translated:
+- **dotnet commands** → `docker compose exec api dotnet ...`
+- **database commands** → `docker compose exec postgres psql -U postgres -d ProductVariantBundle -c "..."`
+- **file operations** → Direct file system (mounted volumes)
+
 ### Container Commands
 ```bash
 # Build application
 docker compose exec api dotnet build
+
+# Run .NET application
+docker compose exec api dotnet run
 
 # Run tests
 docker compose exec api dotnet test
 
 # Access database
 docker compose exec postgres psql -U postgres -d ProductVariantBundle
+
+# Execute database queries
+docker compose exec postgres psql -U postgres -d ProductVariantBundle -c "SELECT * FROM Products;"
 
 # View logs
 docker compose logs api
@@ -105,10 +117,12 @@ docker compose up -d
 
 ### Helper Scripts
 ```bash
-./scripts/dev.sh build    # Build application
-./scripts/dev.sh test     # Run tests  
-./scripts/dev.sh shell    # Container shell
-./scripts/dev.sh db       # Database shell
+./scripts/dev.sh build              # Build Docker images (not .NET code)
+./scripts/dev.sh test               # Run tests
+./scripts/dev.sh migration <name>   # Create EF migration
+./scripts/dev.sh update-db          # Update database
+./scripts/dev.sh shell              # Open container shell
+./scripts/dev.sh db                 # Open database shell
 ```
 
 ## 📁 Project Structure
